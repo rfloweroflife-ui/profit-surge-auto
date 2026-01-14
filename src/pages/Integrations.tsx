@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePinterestAuth } from "@/hooks/usePinterestAuth";
 import { WhatsAppDashboard } from "@/components/whatsapp/WhatsAppDashboard";
+import { CJDashboard } from "@/components/cj/CJDashboard";
 import { 
   Instagram, 
   Link2, 
@@ -26,6 +27,7 @@ import {
   Mic,
   Video,
   ShoppingBag,
+  Package,
   Globe,
   Lock,
   RefreshCw,
@@ -596,6 +598,10 @@ export default function Integrations() {
               <MessageCircle className="h-4 w-4 mr-2" />
               WhatsApp
             </TabsTrigger>
+            <TabsTrigger value="cj" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Package className="h-4 w-4 mr-2" />
+              CJ Dropshipping
+            </TabsTrigger>
           </TabsList>
 
           {/* Social Platforms Tab */}
@@ -831,6 +837,11 @@ export default function Integrations() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* CJ Dropshipping Tab */}
+          <TabsContent value="cj" className="space-y-6">
+            <CJDashboard />
           </TabsContent>
         </Tabs>
       </div>
