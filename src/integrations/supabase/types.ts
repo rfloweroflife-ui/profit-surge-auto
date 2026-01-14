@@ -14,7 +14,285 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bot_activities: {
+        Row: {
+          action: string
+          action_type: string
+          bot_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          result: string | null
+          target: string | null
+          team_id: string | null
+        }
+        Insert: {
+          action: string
+          action_type: string
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          result?: string | null
+          target?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          action?: string
+          action_type?: string
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          result?: string | null
+          target?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_activities_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_activities_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "bot_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bot_commands: {
+        Row: {
+          command: string
+          command_type: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          result: Json | null
+          status: string
+          target_ids: string[] | null
+        }
+        Insert: {
+          command: string
+          command_type: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          result?: Json | null
+          status?: string
+          target_ids?: string[] | null
+        }
+        Update: {
+          command?: string
+          command_type?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          result?: Json | null
+          status?: string
+          target_ids?: string[] | null
+        }
+        Relationships: []
+      }
+      bot_teams: {
+        Row: {
+          assigned_platform: string | null
+          assigned_product: string | null
+          created_at: string
+          engagement_rate: number | null
+          id: string
+          name: string
+          performance_score: number | null
+          posts_created: number | null
+          revenue_generated: number | null
+          status: string
+          strategy: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_platform?: string | null
+          assigned_product?: string | null
+          created_at?: string
+          engagement_rate?: number | null
+          id?: string
+          name: string
+          performance_score?: number | null
+          posts_created?: number | null
+          revenue_generated?: number | null
+          status?: string
+          strategy?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_platform?: string | null
+          assigned_product?: string | null
+          created_at?: string
+          engagement_rate?: number | null
+          id?: string
+          name?: string
+          performance_score?: number | null
+          posts_created?: number | null
+          revenue_generated?: number | null
+          status?: string
+          strategy?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bots: {
+        Row: {
+          created_at: string
+          current_task: string | null
+          efficiency_score: number | null
+          id: string
+          name: string
+          role: string
+          status: string
+          tasks_completed: number | null
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_task?: string | null
+          efficiency_score?: number | null
+          id?: string
+          name: string
+          role: string
+          status?: string
+          tasks_completed?: number | null
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_task?: string | null
+          efficiency_score?: number | null
+          id?: string
+          name?: string
+          role?: string
+          status?: string
+          tasks_completed?: number | null
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_bots_team"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "bot_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitor_analysis: {
+        Row: {
+          analyzed_by: string | null
+          competitor_name: string
+          content_type: string | null
+          content_url: string | null
+          created_at: string
+          engagement_count: number | null
+          hashtags: string[] | null
+          hooks: string[] | null
+          id: string
+          our_version_created: boolean | null
+          platform: string
+          stolen_elements: Json | null
+          views_count: number | null
+        }
+        Insert: {
+          analyzed_by?: string | null
+          competitor_name: string
+          content_type?: string | null
+          content_url?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          hashtags?: string[] | null
+          hooks?: string[] | null
+          id?: string
+          our_version_created?: boolean | null
+          platform: string
+          stolen_elements?: Json | null
+          views_count?: number | null
+        }
+        Update: {
+          analyzed_by?: string | null
+          competitor_name?: string
+          content_type?: string | null
+          content_url?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          hashtags?: string[] | null
+          hooks?: string[] | null
+          id?: string
+          our_version_created?: boolean | null
+          platform?: string
+          stolen_elements?: Json | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_analysis_analyzed_by_fkey"
+            columns: ["analyzed_by"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_decisions: {
+        Row: {
+          consensus_reached: boolean | null
+          created_at: string
+          decision: string
+          decision_type: string
+          executed: boolean | null
+          id: string
+          outcome: string | null
+          reasoning: string | null
+          team_id: string | null
+          votes: Json | null
+        }
+        Insert: {
+          consensus_reached?: boolean | null
+          created_at?: string
+          decision: string
+          decision_type: string
+          executed?: boolean | null
+          id?: string
+          outcome?: string | null
+          reasoning?: string | null
+          team_id?: string | null
+          votes?: Json | null
+        }
+        Update: {
+          consensus_reached?: boolean | null
+          created_at?: string
+          decision?: string
+          decision_type?: string
+          executed?: boolean | null
+          id?: string
+          outcome?: string | null
+          reasoning?: string | null
+          team_id?: string | null
+          votes?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_decisions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "bot_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
