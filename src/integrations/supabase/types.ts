@@ -389,6 +389,287 @@ export type Database = {
           },
         ]
       }
+      whatsapp_analytics: {
+        Row: {
+          auto_replies_sent: number | null
+          connection_id: string | null
+          conversations_started: number | null
+          conversions: number | null
+          created_at: string
+          date: string
+          id: string
+          messages_delivered: number | null
+          messages_read: number | null
+          messages_received: number | null
+          messages_sent: number | null
+          revenue_attributed: number | null
+        }
+        Insert: {
+          auto_replies_sent?: number | null
+          connection_id?: string | null
+          conversations_started?: number | null
+          conversions?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          messages_delivered?: number | null
+          messages_read?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          revenue_attributed?: number | null
+        }
+        Update: {
+          auto_replies_sent?: number | null
+          connection_id?: string | null
+          conversations_started?: number | null
+          conversions?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          messages_delivered?: number | null
+          messages_read?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          revenue_attributed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_analytics_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_auto_replies: {
+        Row: {
+          connection_id: string | null
+          created_at: string
+          id: string
+          include_discount_code: string | null
+          include_products: boolean | null
+          is_active: boolean | null
+          priority: number | null
+          product_ids: string[] | null
+          reply_content: string
+          trigger_keywords: string[]
+          trigger_type: string | null
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string
+          id?: string
+          include_discount_code?: string | null
+          include_products?: boolean | null
+          is_active?: boolean | null
+          priority?: number | null
+          product_ids?: string[] | null
+          reply_content: string
+          trigger_keywords: string[]
+          trigger_type?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string
+          id?: string
+          include_discount_code?: string | null
+          include_products?: boolean | null
+          is_active?: boolean | null
+          priority?: number | null
+          product_ids?: string[] | null
+          reply_content?: string
+          trigger_keywords?: string[]
+          trigger_type?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_auto_replies_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_connections: {
+        Row: {
+          access_token: string
+          business_account_id: string | null
+          connected_at: string
+          display_phone_number: string | null
+          id: string
+          is_active: boolean | null
+          messaging_limit: string | null
+          phone_number_id: string | null
+          platform_type: string | null
+          quality_rating: string | null
+          token_type: string | null
+          updated_at: string
+          user_identifier: string
+          verified_name: string | null
+          webhook_verify_token: string | null
+        }
+        Insert: {
+          access_token: string
+          business_account_id?: string | null
+          connected_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean | null
+          messaging_limit?: string | null
+          phone_number_id?: string | null
+          platform_type?: string | null
+          quality_rating?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_identifier?: string
+          verified_name?: string | null
+          webhook_verify_token?: string | null
+        }
+        Update: {
+          access_token?: string
+          business_account_id?: string | null
+          connected_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean | null
+          messaging_limit?: string | null
+          phone_number_id?: string | null
+          platform_type?: string | null
+          quality_rating?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_identifier?: string
+          verified_name?: string | null
+          webhook_verify_token?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_messages: {
+        Row: {
+          connection_id: string | null
+          content: string
+          created_at: string
+          customer_name: string | null
+          customer_profile_pic: string | null
+          delivered_at: string | null
+          direction: string
+          from_number: string | null
+          id: string
+          is_bot_response: boolean | null
+          message_id: string | null
+          message_type: string | null
+          metadata: Json | null
+          read_at: string | null
+          status: string | null
+          to_number: string | null
+        }
+        Insert: {
+          connection_id?: string | null
+          content: string
+          created_at?: string
+          customer_name?: string | null
+          customer_profile_pic?: string | null
+          delivered_at?: string | null
+          direction: string
+          from_number?: string | null
+          id?: string
+          is_bot_response?: boolean | null
+          message_id?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          status?: string | null
+          to_number?: string | null
+        }
+        Update: {
+          connection_id?: string | null
+          content?: string
+          created_at?: string
+          customer_name?: string | null
+          customer_profile_pic?: string | null
+          delivered_at?: string | null
+          direction?: string
+          from_number?: string | null
+          id?: string
+          is_bot_response?: boolean | null
+          message_id?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          status?: string | null
+          to_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_scheduled_messages: {
+        Row: {
+          connection_id: string | null
+          content: string
+          created_at: string
+          error_message: string | null
+          id: string
+          message_type: string | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string | null
+          template_name: string | null
+          template_params: Json | null
+          to_number: string
+        }
+        Insert: {
+          connection_id?: string | null
+          content: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type?: string | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+          template_params?: Json | null
+          to_number: string
+        }
+        Update: {
+          connection_id?: string | null
+          content?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string | null
+          template_name?: string | null
+          template_params?: Json | null
+          to_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_scheduled_messages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
