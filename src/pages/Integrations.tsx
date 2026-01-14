@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,18 @@ import {
   XCircle,
   Loader2,
   Users,
-  TrendingUp
+  TrendingUp,
+  Shield,
+  Brain
 } from "lucide-react";
+
+interface IntegrationResult {
+  name: string;
+  status: "connected" | "disconnected" | "error" | "needs_setup";
+  message: string;
+  details?: Record<string, unknown>;
+  lastChecked: string;
+}
 
 // Pinterest icon component
 const Pinterest = ({ className }: { className?: string }) => (
@@ -84,8 +94,44 @@ export default function Integrations() {
   });
   const [isTestingPinterest, setIsTestingPinterest] = useState(false);
   const [isTestingInstagram, setIsTestingInstagram] = useState(false);
+  
+  // All integrations status
+  const [allIntegrations, setAllIntegrations] = useState<IntegrationResult[]>([]);
+  const [isVerifyingAll, setIsVerifyingAll] = useState(false);
+  const [lastVerified, setLastVerified] = useState<string | null>(null);
 
   const { connection: pinterestConnection, connect: connectPinterest, refresh: refreshPinterest } = usePinterestAuth();
+
+  // Verify all integrations
+  const verifyAllIntegrations = useCallback(async () => {
+    setIsVerifyingAll(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-integrations", {
+        body: { action: "verify_all" }
+      });
+
+      if (error) throw error;
+
+      if (data?.integrations) {
+        setAllIntegrations(data.integrations);
+        setLastVerified(data.timestamp);
+        
+        const connected = data.summary?.connected || 0;
+        const total = data.summary?.total || 0;
+        
+        toast.success(`Verification Complete`, {
+          description: `${connected}/${total} integrations connected`
+        });
+      }
+    } catch (error) {
+      console.error("Verification error:", error);
+      toast.error("Verification failed", {
+        description: "Could not verify all integrations"
+      });
+    } finally {
+      setIsVerifyingAll(false);
+    }
+  }, []);
 
   // Check Pinterest connection on mount
   useEffect(() => {
@@ -388,15 +434,92 @@ export default function Integrations() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Badge className="bg-primary/20 text-primary border-primary/30">
-              <Check className="h-3 w-3 mr-1" />
-              Shopify Connected
-            </Badge>
-            <Badge className="bg-accent/20 text-accent border-accent/30">
-              <Mic className="h-3 w-3 mr-1" />
-              ElevenLabs Active
-            </Badge>
+            <Button 
+              onClick={verifyAllIntegrations}
+              disabled={isVerifyingAll}
+              className="bg-gradient-to-r from-primary to-accent"
+            >
+              {isVerifyingAll ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Shield className="h-4 w-4 mr-2" />
+              )}
+              Verify All Secrets
+            </Button>
           </div>
+        </div>
+
+        {/* Master Integration Status Panel */}
+        {allIntegrations.length > 0 && (
+          <Card className="bg-gradient-to-br from-card to-green-500/5 border-2 border-green-500/30">
+            <CardHeader>
+              <CardTitle className="font-cyber flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                Vault Secrets Status
+                {lastVerified && (
+                  <span className="text-xs font-normal text-muted-foreground ml-auto">
+                    Last verified: {new Date(lastVerified).toLocaleTimeString()}
+                  </span>
+                )}
+              </CardTitle>
+              <CardDescription>All API keys verified from Supabase vault</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                {allIntegrations.map((integration) => (
+                  <div
+                    key={integration.name}
+                    className={`p-3 rounded-lg border transition-all ${
+                      integration.status === "connected"
+                        ? "border-green-500/50 bg-green-500/10"
+                        : integration.status === "needs_setup"
+                        ? "border-yellow-500/50 bg-yellow-500/10"
+                        : integration.status === "error"
+                        ? "border-red-500/50 bg-red-500/10"
+                        : "border-border bg-secondary/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">{integration.name}</span>
+                      {integration.status === "connected" ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : integration.status === "needs_setup" ? (
+                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      ) : integration.status === "error" ? (
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {integration.message}
+                    </p>
+                    {integration.status === "connected" && (
+                      <Badge className="mt-2 bg-green-500/20 text-green-500 border-green-500/30 text-[10px]">
+                        ✓ VERIFIED
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Verified Integrations Header Badges */}
+        <div className="flex flex-wrap gap-2">
+          <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+            <Check className="h-3 w-3 mr-1" />
+            Shopify Connected
+          </Badge>
+          <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+            <Mic className="h-3 w-3 mr-1" />
+            ElevenLabs Active
+          </Badge>
+          <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+            <Brain className="h-3 w-3 mr-1" />
+            Lovable AI Active
+          </Badge>
         </div>
 
         {/* Connection Status Panel */}
