@@ -246,6 +246,102 @@ export type Database = {
           },
         ]
       }
+      pinterest_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          pinterest_user_id: string | null
+          pinterest_username: string | null
+          refresh_token: string | null
+          scopes: string[] | null
+          token_type: string | null
+          updated_at: string
+          user_identifier: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinterest_user_id?: string | null
+          pinterest_username?: string | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_type?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinterest_user_id?: string | null
+          pinterest_username?: string | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_type?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Relationships: []
+      }
+      pinterest_pins: {
+        Row: {
+          board_id: string | null
+          clicks: number | null
+          created_at: string
+          description: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          impressions: number | null
+          link: string | null
+          pin_id: string | null
+          posted_at: string | null
+          product_id: string | null
+          saves: number | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          board_id?: string | null
+          clicks?: number | null
+          created_at?: string
+          description?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          link?: string | null
+          pin_id?: string | null
+          posted_at?: string | null
+          product_id?: string | null
+          saves?: number | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          board_id?: string | null
+          clicks?: number | null
+          created_at?: string
+          description?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          link?: string | null
+          pin_id?: string | null
+          posted_at?: string | null
+          product_id?: string | null
+          saves?: number | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       team_decisions: {
         Row: {
           consensus_reached: boolean | null
