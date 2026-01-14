@@ -20,7 +20,8 @@ import {
   Sparkles,
   BarChart3,
   MessageCircle,
-  CheckCircle
+  CheckCircle,
+  Swords
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -38,6 +39,8 @@ import { CompetitorPanel } from "@/components/bots/CompetitorPanel";
 import { CommandCenter } from "@/components/bots/CommandCenter";
 import { DecisionLog } from "@/components/bots/DecisionLog";
 import { ProductAssignment } from "@/components/bots/ProductAssignment";
+import { SwarmWarRoom } from "@/components/bots/SwarmWarRoom";
+import { SampleContentPreview, SamplePinPreview } from "@/components/bots/SampleContent";
 import { useProducts } from "@/hooks/useProducts";
 
 const BOT_ROLES = [
@@ -206,8 +209,12 @@ export default function BotSwarm() {
         </Card>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="products" className="space-y-4">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+        <Tabs defaultValue="warroom" className="space-y-4">
+          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+            <TabsTrigger value="warroom">
+              <Swords className="h-3 w-3 mr-1" />
+              War Room
+            </TabsTrigger>
             <TabsTrigger value="products">
               <Package className="h-3 w-3 mr-1" />
               Products
@@ -217,6 +224,20 @@ export default function BotSwarm() {
             <TabsTrigger value="decisions">Decisions</TabsTrigger>
             <TabsTrigger value="competitors">Intel</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="warroom">
+            <div className="space-y-6">
+              <SwarmWarRoom onRefresh={refetchTeams} />
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <SampleContentPreview />
+                </div>
+                <div>
+                  <SamplePinPreview />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="products">
             <ProductAssignment />
