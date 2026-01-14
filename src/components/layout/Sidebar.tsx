@@ -9,7 +9,8 @@ import {
   TrendingUp,
   Package,
   Settings,
-  Zap
+  Zap,
+  Workflow
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { icon: Zap, label: "Integrations", href: "/integrations" },
   { icon: Brain, label: "CEO Brain", href: "/ceo-brain" },
   { icon: Bot, label: "Bot Swarm", href: "/bot-swarm" },
+  { icon: Workflow, label: "n8n Workflows", href: "/n8n" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 

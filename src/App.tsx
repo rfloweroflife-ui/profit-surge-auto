@@ -15,6 +15,7 @@ import SocialPoster from "./pages/SocialPoster";
 import Settings from "./pages/Settings";
 import XProfitHubPage from "./pages/XProfitHubPage";
 import XAuthCallback from "./pages/XAuthCallback";
+import N8nWorkflows from "./pages/N8nWorkflows";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/social-poster" element={<SocialPoster />} />
           <Route path="/x-hub" element={<XProfitHubPage />} />
           <Route path="/auth/x/callback" element={<XAuthCallback />} />
+          <Route path="/n8n" element={<N8nWorkflows />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
