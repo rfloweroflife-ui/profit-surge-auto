@@ -58,50 +58,69 @@ serve(async (req) => {
     // Generate content for each product
     for (const product of products as Product[]) {
       for (const platform of platforms as string[]) {
-        const aiResult = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: [
-              {
-                role: "system",
-                content: `You are a viral skincare marketing expert specializing in ${platform}. Create scroll-stopping content that drives sales. Focus on transformation, urgency, and social proof.`
-              },
-              {
-                role: "user",
-                content: `Create viral ${platform} content for this skincare product:
+        try {
+          const aiResult = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                {
+                  role: "system",
+                  content: `You are a viral skincare marketing expert specializing in ${platform}. Create scroll-stopping content that drives sales. Focus on transformation, urgency, and social proof. Always respond with valid JSON only, no markdown.`
+                },
+                {
+                  role: "user",
+                  content: `Create viral ${platform} content for this skincare product:
 
 Product: ${product.title}
 Description: ${product.description || "Premium skincare product"}
 Price: ${product.price}
 
-Generate:
-1. A viral hook (first line that stops scrolling - max 10 words)
-2. Full caption (engaging, includes benefits, social proof hints)
-3. 10 trending hashtags for skincare on ${platform}
-4. Urgent CTA with discount code GLOW10
+Generate a JSON object with these exact keys:
+- hook: A viral hook (first line that stops scrolling - max 10 words)
+- caption: Full caption (engaging, includes benefits, social proof hints)
+- hashtags: Array of 10 trending hashtags for skincare on ${platform}
+- cta: Urgent CTA with discount code GLOW10
 
-Return as JSON:
-{
-  "hook": "...",
-  "caption": "...",
-  "hashtags": ["#tag1", "#tag2", ...],
-  "cta": "..."
-}`
-              }
-            ],
-          }),
-        });
+Respond with ONLY the JSON object, no other text.`
+                }
+              ],
+            }),
+          });
 
-        if (aiResult.ok) {
-          const aiData = await aiResult.json();
+          if (!aiResult.ok) {
+            console.error(`AI request failed with status ${aiResult.status}`);
+            continue;
+          }
+
+          const responseText = await aiResult.text();
+          
+          if (!responseText || responseText.trim() === "") {
+            console.error("Empty AI response received");
+            continue;
+          }
+
+          let aiData;
+          try {
+            aiData = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error("Failed to parse AI response:", responseText.substring(0, 200));
+            continue;
+          }
+
           const content = aiData.choices?.[0]?.message?.content;
           
+          if (!content) {
+            console.error("No content in AI response");
+            continue;
+          }
+
           try {
+            // Try to extract JSON from the response
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
@@ -109,15 +128,39 @@ Return as JSON:
                 product: product.title,
                 platform,
                 contentType: platform === "pinterest" ? "pin" : "reel",
-                hook: parsed.hook || "",
-                caption: parsed.caption || "",
-                hashtags: parsed.hashtags || [],
-                cta: parsed.cta || "",
+                hook: parsed.hook || "Transform your skin today ✨",
+                caption: parsed.caption || `Discover the secret to glowing skin with ${product.title}`,
+                hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : ["#skincare", "#glowup", "#beauty"],
+                cta: parsed.cta || "🔥 10% OFF with code GLOW10 - Link in bio!",
+              });
+            } else {
+              // Fallback if no JSON found
+              generatedContent.push({
+                product: product.title,
+                platform,
+                contentType: platform === "pinterest" ? "pin" : "reel",
+                hook: "Your glow-up starts here ✨",
+                caption: `Transform your skincare routine with ${product.title}. Real results, real glow.`,
+                hashtags: ["#skincare", "#glowup", "#beauty", "#selfcare", "#skincareroutine"],
+                cta: "🔥 10% OFF with code GLOW10 - Link in bio!",
               });
             }
           } catch (e) {
-            console.error("Failed to parse content:", e);
+            console.error("Failed to parse content JSON:", e);
+            // Add fallback content
+            generatedContent.push({
+              product: product.title,
+              platform,
+              contentType: platform === "pinterest" ? "pin" : "reel",
+              hook: "Your glow-up starts here ✨",
+              caption: `Transform your skincare routine with ${product.title}. Real results, real glow.`,
+              hashtags: ["#skincare", "#glowup", "#beauty", "#selfcare", "#skincareroutine"],
+              cta: "🔥 10% OFF with code GLOW10 - Link in bio!",
+            });
           }
+        } catch (fetchError) {
+          console.error("Fetch error for product:", product.title, fetchError);
+          continue;
         }
       }
     }
