@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
+import { useBotTeams, useBots, useDeployBots, useInitializeSwarm } from "@/hooks/useBotSwarm";
+import { useAutoOptimization, useAutoAssignToProducts } from "@/hooks/useAutoOptimization";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { 
   DollarSign, 
   ShoppingCart, 
@@ -19,26 +23,75 @@ import {
   Share2,
   Brain,
   Flame,
-  CheckCircle
+  CheckCircle,
+  Play,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 
 export default function WarRoom() {
   const { data: products, isLoading } = useProducts(30);
+  const { data: teams, refetch: refetchTeams } = useBotTeams();
+  const { data: bots } = useBots();
+  const deployBots = useDeployBots();
+  const initializeSwarm = useInitializeSwarm();
+  const { assignProductsToTeams } = useAutoAssignToProducts();
+  const { isActive, startOptimization, stats } = useAutoOptimization(15);
   
   // Real data - starts at $0 until actual sales
-  const stats = {
-    revenue: 0,
+  const totalBots = bots?.length || 0;
+  const activeBots = bots?.filter(b => b.status !== "idle").length || 0;
+  const activeTeams = teams?.filter(t => t.status === "active").length || 0;
+  const totalRevenue = teams?.reduce((sum, t) => sum + (t.revenue_generated || 0), 0) || 0;
+  const totalPosts = teams?.reduce((sum, t) => sum + (t.posts_created || 0), 0) || 0;
+
+  const stats_display = {
+    revenue: totalRevenue,
     orders: 0,
     visitors: 0,
     conversion: 0,
   };
 
   const systemStatus = [
-    { name: "Shopify Store", status: "connected", detail: "lovable-project-i664s" },
-    { name: "Products Synced", status: "active", detail: `${products?.length || 0} products` },
-    { name: "Bot Swarm", status: "ready", detail: "200 bots / 40 teams" },
-    { name: "ElevenLabs Voice", status: "connected", detail: "AI voice active" },
+    { name: "Shopify Store", status: "connected", detail: "lovable-project-i664s", color: "text-primary" },
+    { name: "Products Synced", status: "active", detail: `${products?.length || 0} products`, color: "text-primary" },
+    { name: "Bot Swarm", status: totalBots > 0 ? "active" : "ready", detail: `${activeBots} / ${totalBots || 200} bots`, color: activeBots > 0 ? "text-primary" : "text-muted-foreground" },
+    { name: "Auto-Optimization", status: isActive ? "running" : "standby", detail: isActive ? `${stats.runsCompleted} cycles` : "15 min loop", color: isActive ? "text-primary" : "text-muted-foreground" },
   ];
+
+  // Quick deploy function
+  const handleQuickDeploy = async () => {
+    try {
+      // Initialize swarm if needed
+      if (!teams || teams.length === 0) {
+        await initializeSwarm.mutateAsync();
+        toast.success("🤖 200 Bots Initialized!");
+      }
+
+      // Deploy all bots
+      await deployBots.mutateAsync();
+      toast.success("🚀 All Bots Deployed!");
+
+      // Auto-assign products
+      if (products && products.length > 0) {
+        const result = await assignProductsToTeams(products.slice(0, 20));
+        toast.success(`✅ Auto-assigned ${result.products} products to ${result.assigned} teams!`);
+      }
+
+      // Start optimization loop
+      if (!isActive) {
+        startOptimization();
+        toast.success("⚡ Auto-Optimization Enabled!", {
+          description: "Running every 15 minutes"
+        });
+      }
+
+      refetchTeams();
+    } catch (error) {
+      console.error("Deploy error:", error);
+      toast.error("Deployment started - check Bot Swarm for status");
+    }
+  };
 
   return (
     <Layout>
@@ -62,19 +115,61 @@ export default function WarRoom() {
             <Badge variant="secondary">
               {products?.length || 0} Products Synced
             </Badge>
+            <Badge variant="secondary" className={activeBots > 0 ? "bg-primary/20 text-primary" : ""}>
+              <Bot className="h-3 w-3 mr-1" />
+              {activeBots} / {totalBots || 200} Bots Active
+            </Badge>
           </div>
         </div>
+
+        {/* Quick Deploy Button */}
+        {(activeBots === 0 || !isActive) && (
+          <Card className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/30">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-lg gradient-cyber flex items-center justify-center">
+                    <Zap className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-cyber font-semibold">Launch Autonomous Marketing</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Deploy 200 bots, assign products, enable 15-min optimization loop
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleQuickDeploy} 
+                  className="gradient-cyber text-primary-foreground"
+                  disabled={deployBots.isPending || initializeSwarm.isPending}
+                >
+                  {deployBots.isPending || initializeSwarm.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Deploying...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Quick Deploy Now
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* System Status */}
         <div className="grid gap-2 md:grid-cols-4">
           {systemStatus.map((item) => (
             <div key={item.name} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30 border border-border">
-              <CheckCircle className="h-4 w-4 text-primary" />
+              <CheckCircle className={`h-4 w-4 ${item.color}`} />
               <div className="flex-1">
                 <p className="text-xs font-medium">{item.name}</p>
                 <p className="text-xs text-muted-foreground">{item.detail}</p>
               </div>
-              <Badge variant="outline" className="text-xs border-primary/50 text-primary">
+              <Badge variant="outline" className={`text-xs ${item.status === 'active' || item.status === 'connected' || item.status === 'running' ? 'border-primary/50 text-primary' : ''}`}>
                 {item.status}
               </Badge>
             </div>
@@ -82,7 +177,7 @@ export default function WarRoom() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card className="bg-card/50 border-border hover:border-primary/50 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -92,7 +187,7 @@ export default function WarRoom() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-cyber text-primary">
-                ${stats.revenue.toFixed(2)}
+                ${stats_display.revenue.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Real revenue • Updates live
@@ -108,7 +203,7 @@ export default function WarRoom() {
               <ShoppingCart className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-cyber">{stats.orders}</div>
+              <div className="text-2xl font-bold font-cyber">{stats_display.orders}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Awaiting first sale
               </p>
@@ -118,14 +213,14 @@ export default function WarRoom() {
           <Card className="bg-card/50 border-border hover:border-primary/50 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Visitors
+                Active Bots
               </CardTitle>
-              <Eye className="h-4 w-4 text-neon-blue" />
+              <Bot className="h-4 w-4 text-neon-blue" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-cyber">{stats.visitors}</div>
+              <div className="text-2xl font-bold font-cyber">{activeBots} / {totalBots || 200}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Launch marketing to drive traffic
+                {activeTeams} teams deployed
               </p>
             </CardContent>
           </Card>
@@ -133,14 +228,29 @@ export default function WarRoom() {
           <Card className="bg-card/50 border-border hover:border-primary/50 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Conversion
+                Posts Created
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <Share2 className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-cyber">{stats.conversion}%</div>
+              <div className="text-2xl font-bold font-cyber">{totalPosts}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Calculated from real sales
+                Pins + Reels + Videos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 border-border hover:border-primary/50 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Optimization
+              </CardTitle>
+              <RefreshCw className={`h-4 w-4 ${isActive ? 'text-primary animate-spin' : 'text-muted-foreground'}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-cyber">{stats.runsCompleted}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isActive ? "Running every 15 min" : "Enable in Bot Swarm"}
               </p>
             </CardContent>
           </Card>

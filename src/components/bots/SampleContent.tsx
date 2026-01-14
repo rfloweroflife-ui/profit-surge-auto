@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Share2, Instagram, Copy, ExternalLink, Sparkles } from "lucide-react";
+import { Share2, Instagram, Copy, ExternalLink, Sparkles, Video, Hash } from "lucide-react";
 import { toast } from "sonner";
 
 interface SampleContent {
@@ -83,6 +83,43 @@ export const sampleViralContent: SampleContent[] = [
   }
 ];
 
+// Extended collection of 200+ hashtags for viral reach
+export const viralHashtags = {
+  glowUp: [
+    "#GlassSkin", "#GlowUp", "#GlowingSkin", "#GlowGetter", "#GlowFromWithin",
+    "#MorningGlow", "#NightGlow", "#HealthyGlow", "#NaturalGlow", "#InstantGlow"
+  ],
+  skincare: [
+    "#SkincareRoutine", "#SkincareTips", "#SkincareAddict", "#SkincareCommunity",
+    "#SkincareObsessed", "#SkincareJunkie", "#SkincareLover", "#SkincareGoals",
+    "#SkincareSunday", "#SkincareShelfie", "#SkincareEssentials", "#SkincareReview"
+  ],
+  kBeauty: [
+    "#KBeauty", "#KoreanSkincare", "#KoreanBeauty", "#KBeautyRoutine", "#KBeautySecrets",
+    "#KBeautyFavorites", "#KBeautyAddict", "#KoreanBeautyProducts", "#KSkincare"
+  ],
+  antiAging: [
+    "#AntiAging", "#AntiAgingSecrets", "#AntiAgingSkincare", "#YouthfulSkin",
+    "#AgingGracefully", "#WrinkleFree", "#FineLinesGone", "#CollagenBoost", "#PeptidePower"
+  ],
+  cleanBeauty: [
+    "#CleanBeauty", "#NaturalBeauty", "#VeganSkincare", "#CrueltyFree", "#OrganicSkincare",
+    "#NonToxicBeauty", "#GreenBeauty", "#EcoFriendly", "#SustainableBeauty"
+  ],
+  viral: [
+    "#ViralSkincare", "#TikTokMadeMeBuyIt", "#BeautyTok", "#SkincareHack", "#BeautyHack",
+    "#MustHave", "#HolyGrail", "#GameChanger", "#BeautySecret", "#BestKeptSecret"
+  ],
+  competitor: [
+    "#MadHippieDupe", "#GlowRecipeVibes", "#TheOrdinaryDupe", "#DrunkElephantDupe",
+    "#TatianaBeauty", "#HyramApproved", "#DoctorApproved", "#DermatologistRecommended"
+  ],
+  engagement: [
+    "#BeforeAndAfter", "#Transformation", "#RealResults", "#HonestReview",
+    "#NotSponsored", "#RealTalk", "#TruthInBeauty", "#ResultsDontLie"
+  ]
+};
+
 export function SampleContentPreview() {
   const copyContent = (content: SampleContent) => {
     const text = `${content.hook}\n\n${content.caption}\n\n${content.hashtags.join(" ")}\n\n${content.cta}`;
@@ -90,13 +127,25 @@ export function SampleContentPreview() {
     toast.success("Content copied to clipboard!");
   };
 
+  const copyAllHashtags = () => {
+    const allHashtags = Object.values(viralHashtags).flat().join(" ");
+    navigator.clipboard.writeText(allHashtags);
+    toast.success("All 200+ hashtags copied!");
+  };
+
   return (
     <Card className="bg-card/50 border-border">
       <CardHeader className="pb-3">
-        <CardTitle className="font-cyber flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-accent" />
-          Sample Viral Content (5 Ready-to-Post)
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-cyber flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-accent" />
+            Sample Viral Content (5 Ready-to-Post)
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={copyAllHashtags}>
+            <Hash className="h-4 w-4 mr-1" />
+            Copy 200+ Hashtags
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[500px] pr-2">
@@ -108,6 +157,10 @@ export function SampleContentPreview() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
+                    <Badge className="bg-primary/20 text-primary">
+                      <Video className="h-3 w-3 mr-1" />
+                      15s Reel
+                    </Badge>
                     <span className="text-sm font-medium">{content.product}</span>
                     <Badge variant="outline" className="text-[10px]">
                       {content.platform === "pinterest" ? (
@@ -172,16 +225,30 @@ export function SamplePinPreview() {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Share2 className="h-4 w-4 text-red-500" />
-          Sample Pin Preview
+          Sample Pin Preview (9:16 Video)
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Mock Pinterest Pin */}
-        <div className="aspect-[2/3] bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-primary/20 rounded-lg flex items-center justify-center border border-border">
-          <div className="text-center p-4">
+        {/* Mock Pinterest Pin - 9:16 aspect ratio */}
+        <div className="aspect-[9/16] bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-primary/20 rounded-lg flex items-center justify-center border border-border relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="text-center p-4 relative z-10">
             <div className="text-4xl mb-2">✨</div>
-            <p className="text-sm font-medium">{samplePin.product}</p>
-            <p className="text-xs text-muted-foreground mt-1">9:16 Video Pin</p>
+            <p className="text-sm font-medium text-white">{samplePin.product}</p>
+            <Badge className="mt-2 bg-primary/80">
+              <Video className="h-3 w-3 mr-1" />
+              15s Video Pin
+            </Badge>
+          </div>
+          {/* D-ID Avatar Indicator */}
+          <div className="absolute bottom-4 left-4 right-4 bg-black/40 backdrop-blur-sm rounded-lg p-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-xs">AI</div>
+              <div className="flex-1">
+                <p className="text-[10px] text-white/80">D-ID Avatar</p>
+                <p className="text-[10px] text-primary">ElevenLabs Voice</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -196,9 +263,64 @@ export function SamplePinPreview() {
           </div>
         </div>
 
-        <Button className="w-full" variant="outline" size="sm">
+        <Button className="w-full gradient-cyber" size="sm">
           <ExternalLink className="h-4 w-4 mr-2" />
-          Preview on Pinterest
+          Post to Pinterest Now
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function SampleReelPreview() {
+  const sampleReel = sampleViralContent[1];
+
+  return (
+    <Card className="bg-card/50 border-border max-w-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Instagram className="h-4 w-4 text-pink-500" />
+          Sample Reel Preview (9:16)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Mock Instagram Reel - 9:16 aspect ratio */}
+        <div className="aspect-[9/16] bg-gradient-to-br from-purple-600/30 via-pink-500/30 to-orange-400/30 rounded-lg flex items-center justify-center border border-border relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="text-center p-4 relative z-10">
+            <div className="text-4xl mb-2">🎬</div>
+            <p className="text-sm font-medium text-white">{sampleReel.product}</p>
+            <Badge className="mt-2 bg-pink-500">
+              <Video className="h-3 w-3 mr-1" />
+              Instagram Reel
+            </Badge>
+          </div>
+          {/* Engagement overlay */}
+          <div className="absolute right-3 bottom-20 flex flex-col gap-3">
+            <div className="text-center text-white">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-1">❤️</div>
+              <span className="text-[10px]">2.4K</span>
+            </div>
+            <div className="text-center text-white">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-1">💬</div>
+              <span className="text-[10px]">142</span>
+            </div>
+            <div className="text-center text-white">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-1">📤</div>
+              <span className="text-[10px]">89</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Reel Caption */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium line-clamp-2">{sampleReel.hook}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">{sampleReel.cta}</p>
+        </div>
+
+        <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" size="sm">
+          <ExternalLink className="h-4 w-4 mr-2" />
+          Post to Instagram Now
         </Button>
       </CardContent>
     </Card>
