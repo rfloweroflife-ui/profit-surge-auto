@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# Profit Reaper Autopilot
+
+<!-- GitHub Sync Test: 2026-01-14 -->
 
 ## Project info
 
