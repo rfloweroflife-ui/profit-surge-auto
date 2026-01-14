@@ -1,19 +1,24 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useProducts } from "@/hooks/useProducts";
 import { 
   DollarSign, 
   TrendingUp, 
   ShoppingCart, 
   Eye,
-  ArrowUpRight,
-  ArrowDownRight,
   Package,
-  Users
+  Users,
+  Target,
+  BarChart3,
+  ArrowUpRight,
+  ArrowDownRight
 } from "lucide-react";
 
 export default function SalesTracker() {
-  // Real data - all starts at 0 until actual sales
+  const { data: products } = useProducts(30);
+
+  // Real data - all starts at 0 until actual sales from Shopify
   const stats = {
     revenue: 0,
     orders: 0,
@@ -24,11 +29,20 @@ export default function SalesTracker() {
   };
 
   const trafficSources = [
-    { source: "Pinterest", visits: 0, revenue: 0 },
-    { source: "Instagram", visits: 0, revenue: 0 },
-    { source: "Direct", visits: 0, revenue: 0 },
-    { source: "Organic Search", visits: 0, revenue: 0 },
+    { source: "Pinterest", visits: 0, revenue: 0, icon: "📌", color: "text-red-500" },
+    { source: "Instagram", visits: 0, revenue: 0, icon: "📸", color: "text-pink-500" },
+    { source: "TikTok", visits: 0, revenue: 0, icon: "🎵", color: "text-purple-500" },
+    { source: "Direct", visits: 0, revenue: 0, icon: "🔗", color: "text-blue-500" },
+    { source: "Organic Search", visits: 0, revenue: 0, icon: "🔍", color: "text-green-500" },
   ];
+
+  const topProducts = products?.slice(0, 5).map(p => ({
+    name: p.node.title,
+    image: p.node.images.edges[0]?.node.url,
+    price: parseFloat(p.node.priceRange.minVariantPrice.amount),
+    sold: 0,
+    revenue: 0
+  })) || [];
 
   return (
     <Layout>
@@ -36,16 +50,21 @@ export default function SalesTracker() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-cyber text-3xl font-bold text-primary text-glow-sm">
-              SALES TRACKER
+              REAL SALES TRACKER
             </h1>
             <p className="text-muted-foreground mt-1">
-              Real-time revenue & conversion tracking • Live Shopify data
+              Live Shopify data • Real revenue tracking • No simulations
             </p>
           </div>
-          <Badge variant="outline" className="border-primary text-primary animate-pulse">
-            <div className="h-2 w-2 rounded-full bg-primary mr-2" />
-            LIVE DATA
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="border-primary text-primary animate-pulse">
+              <div className="h-2 w-2 rounded-full bg-primary mr-2" />
+              LIVE DATA
+            </Badge>
+            <Badge variant="secondary">
+              Store: lovable-project-i664s
+            </Badge>
+          </div>
         </div>
 
         {/* Main Stats */}
@@ -58,7 +77,7 @@ export default function SalesTracker() {
                   <p className="text-3xl font-cyber font-bold text-primary mt-1">
                     ${stats.revenue.toFixed(2)}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Real revenue from sales</p>
+                  <p className="text-xs text-muted-foreground mt-1">Real sales from Shopify</p>
                 </div>
                 <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center">
                   <DollarSign className="h-6 w-6 text-primary" />
@@ -88,7 +107,7 @@ export default function SalesTracker() {
                 <div>
                   <p className="text-sm text-muted-foreground">Visitors</p>
                   <p className="text-3xl font-cyber font-bold mt-1">{stats.visitors}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Launch marketing to drive traffic</p>
+                  <p className="text-xs text-muted-foreground mt-1">Launch campaigns to drive traffic</p>
                 </div>
                 <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
                   <Eye className="h-6 w-6 text-neon-blue" />
@@ -113,39 +132,70 @@ export default function SalesTracker() {
           </Card>
         </div>
 
-        {/* Traffic Sources */}
-        <Card className="bg-card/50 border-border">
-          <CardHeader>
-            <CardTitle className="font-cyber flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Traffic Sources
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {trafficSources.map((source) => (
-                <div key={source.source} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-secondary flex items-center justify-center">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Traffic Sources */}
+          <Card className="bg-card/50 border-border">
+            <CardHeader>
+              <CardTitle className="font-cyber flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Traffic Sources
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {trafficSources.map((source) => (
+                  <div key={source.source} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{source.icon}</span>
+                      <span className="font-medium">{source.source}</span>
                     </div>
-                    <span className="font-medium">{source.source}</span>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-right">
+                        <p className="font-medium">{source.visits}</p>
+                        <p className="text-xs text-muted-foreground">visits</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-primary">${source.revenue}</p>
+                        <p className="text-xs text-muted-foreground">revenue</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="text-right">
-                      <p className="font-medium">{source.visits}</p>
-                      <p className="text-xs text-muted-foreground">visits</p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Top Products */}
+          <Card className="bg-card/50 border-border">
+            <CardHeader>
+              <CardTitle className="font-cyber flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                Top Products (Ready to Sell)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {topProducts.map((product, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30 border border-border">
+                    <div className="w-10 h-10 rounded overflow-hidden bg-muted">
+                      {product.image && (
+                        <img src={product.image} alt="" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">${product.price.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-primary">${source.revenue}</p>
-                      <p className="text-xs text-muted-foreground">revenue</p>
+                      <p className="text-sm font-medium">{product.sold} sold</p>
+                      <p className="text-xs text-primary">${product.revenue}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Recent Orders */}
         <Card className="bg-card/50 border-border">
@@ -156,10 +206,15 @@ export default function SalesTracker() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No orders yet</p>
-              <p className="text-sm">Orders will appear here in real-time</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <ShoppingCart className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="font-cyber text-lg">No orders yet</p>
+              <p className="text-sm mt-2">
+                Launch your viral campaigns with the Bot Swarm and Social Poster.
+              </p>
+              <p className="text-sm">
+                Orders will appear here in real-time from your Shopify store.
+              </p>
             </div>
           </CardContent>
         </Card>

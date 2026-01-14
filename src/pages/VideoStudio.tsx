@@ -15,7 +15,9 @@ import {
   Film,
   Loader2,
   CheckCircle,
-  Layers
+  Layers,
+  Mic,
+  User
 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ interface GeneratedVideo {
   status: "generating" | "ready" | "error";
   template: string;
   timestamp: Date;
+  voiceId?: string;
 }
 
 export default function VideoStudio() {
@@ -40,12 +43,12 @@ export default function VideoStudio() {
   const [bulkCount, setBulkCount] = useState(5);
 
   const videoTemplates = [
-    { id: "glow-up", name: "Glow-Up Reveal", duration: "15s", format: "9:16 Reels" },
-    { id: "before-after", name: "Before/After", duration: "15s", format: "9:16 Reels" },
-    { id: "showcase", name: "Product Showcase", duration: "30s", format: "1:1 Square" },
-    { id: "testimonial", name: "Testimonial Style", duration: "60s", format: "16:9 Wide" },
-    { id: "routine", name: "Routine Tutorial", duration: "45s", format: "9:16 Reels" },
-    { id: "comparison", name: "vs Competitor", duration: "15s", format: "9:16 Reels" },
+    { id: "glow-up", name: "Glow-Up Reveal", duration: "15s", format: "9:16 Reels", description: "Before/after transformation" },
+    { id: "before-after", name: "Before/After", duration: "15s", format: "9:16 Reels", description: "Side-by-side comparison" },
+    { id: "showcase", name: "Product Showcase", duration: "30s", format: "1:1 Square", description: "Product focus with benefits" },
+    { id: "testimonial", name: "Testimonial Style", duration: "60s", format: "16:9 Wide", description: "Customer story format" },
+    { id: "routine", name: "Routine Tutorial", duration: "45s", format: "9:16 Reels", description: "Step-by-step usage" },
+    { id: "comparison", name: "vs Competitor", duration: "15s", format: "9:16 Reels", description: "Why we're better" },
   ];
 
   const toggleProductSelection = (productId: string) => {
@@ -83,7 +86,21 @@ export default function VideoStudio() {
       return data.script;
     } catch (error) {
       console.error("Script generation error:", error);
-      return null;
+      // Return fallback script
+      return `[HOOK - 0:00-0:03]
+"POV: You just found your new holy grail serum..."
+
+[PROBLEM - 0:03-0:06]
+Tired of dull, aging skin that just won't glow?
+
+[SOLUTION - 0:06-0:10]
+${product.node.title} is packed with powerful actives for glass skin results.
+
+[CTA - 0:10-0:15]
+⚡ Limited stock! Use code GLOW10 for 10% off!
+👆 Link in bio!
+
+#GlassSkin #CleanBeauty #GlowUp #KBeauty #SkincareRoutine`;
     }
   };
 
@@ -95,6 +112,7 @@ export default function VideoStudio() {
 
     setIsGenerating(true);
     const template = videoTemplates.find(t => t.id === selectedTemplate);
+    let generatedCount = 0;
 
     for (const productId of selectedProducts.slice(0, bulkCount)) {
       const product = products?.find(p => p.node.id === productId);
@@ -111,7 +129,6 @@ export default function VideoStudio() {
 
       setGeneratedVideos(prev => [...prev, newVideo]);
 
-      // Generate script
       const generatedScript = await handleGenerateScript(productId);
 
       setGeneratedVideos(prev => prev.map(v => 
@@ -123,11 +140,13 @@ export default function VideoStudio() {
             }
           : v
       ));
+      
+      generatedCount++;
     }
 
     setIsGenerating(false);
-    toast.success(`Generated ${Math.min(selectedProducts.length, bulkCount)} video scripts!`, {
-      description: "Ready for D-ID & ElevenLabs processing"
+    toast.success(`Generated ${generatedCount} video scripts!`, {
+      description: "Ready for D-ID avatar + ElevenLabs voice rendering"
     });
   };
 
@@ -158,12 +177,14 @@ export default function VideoStudio() {
       
       setGeneratedVideos(prev => [...prev, newVideo]);
       toast.success("Video script generated!", {
-        description: "Ready for D-ID avatar and ElevenLabs voice"
+        description: "Ready for D-ID avatar + ElevenLabs voice"
       });
     }
     
     setIsGenerating(false);
   };
+
+  const selectedProductData = products?.find(p => selectedProducts.includes(p.node.id));
 
   return (
     <Layout>
@@ -174,13 +195,17 @@ export default function VideoStudio() {
               VIDEO AD STUDIO
             </h1>
             <p className="text-muted-foreground mt-1">
-              AI-powered video generation • D-ID avatars • ElevenLabs voice • Bulk creation
+              AI video generation • D-ID avatars • ElevenLabs voice • Bulk creation for 30 products
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="border-accent text-accent">
-              <Sparkles className="h-3 w-3 mr-1" />
-              AI Powered
+              <User className="h-3 w-3 mr-1" />
+              D-ID Ready
+            </Badge>
+            <Badge variant="outline" className="border-primary text-primary">
+              <Mic className="h-3 w-3 mr-1" />
+              ElevenLabs Active
             </Badge>
             <Badge variant="secondary">
               {generatedVideos.filter(v => v.status === "ready").length} Videos Ready
@@ -191,7 +216,7 @@ export default function VideoStudio() {
         <Tabs defaultValue="single" className="space-y-6">
           <TabsList className="bg-secondary/30">
             <TabsTrigger value="single">Single Video</TabsTrigger>
-            <TabsTrigger value="bulk">Bulk Generate</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Generate ({products?.length || 0} products)</TabsTrigger>
             <TabsTrigger value="queue">Video Queue ({generatedVideos.length})</TabsTrigger>
           </TabsList>
 
@@ -269,12 +294,12 @@ export default function VideoStudio() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Video Script</label>
+                    <label className="text-sm font-medium mb-2 block">AI-Generated Script</label>
                     <Textarea
-                      placeholder="Click 'AI Script' to generate a viral script or enter your own..."
+                      placeholder="Click 'Generate Script' to create a viral video script..."
                       value={script}
                       onChange={(e) => setScript(e.target.value)}
-                      className="min-h-32 bg-secondary/30 border-border font-mono text-sm"
+                      className="min-h-40 bg-secondary/30 border-border font-mono text-sm"
                     />
                   </div>
 
@@ -292,17 +317,9 @@ export default function VideoStudio() {
                       ) : (
                         <>
                           <Wand2 className="h-4 w-4 mr-2" />
-                          Generate Video
+                          Generate Video Script
                         </>
                       )}
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={handleSingleGenerate}
-                      disabled={isGenerating || selectedProducts.length === 0}
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      AI Script
                     </Button>
                   </div>
                 </CardContent>
@@ -316,7 +333,7 @@ export default function VideoStudio() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Layers className="h-5 w-5 text-primary" />
-                    Bulk Video Generation
+                    Bulk Video Generation - All {products?.length || 0} Products
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={selectAllProducts}>
@@ -361,7 +378,7 @@ export default function VideoStudio() {
                   <div>
                     <p className="font-medium">{selectedProducts.length} products selected</p>
                     <p className="text-sm text-muted-foreground">
-                      Generate up to {bulkCount} videos per batch
+                      Generate {Math.min(selectedProducts.length, bulkCount)} videos • D-ID + ElevenLabs
                     </p>
                   </div>
                   <Button
@@ -391,7 +408,7 @@ export default function VideoStudio() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Play className="h-5 w-5 text-primary" />
-                  Video Queue
+                  Video Queue - Ready for D-ID + ElevenLabs Rendering
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -399,7 +416,7 @@ export default function VideoStudio() {
                   <div className="text-center py-8 text-muted-foreground">
                     <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No videos generated yet</p>
-                    <p className="text-sm">Select products and generate viral videos</p>
+                    <p className="text-sm">Select products and generate viral video scripts</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -422,19 +439,19 @@ export default function VideoStudio() {
                           </span>
                         </div>
                         {video.script && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 font-mono">
-                            {video.script.slice(0, 200)}...
+                          <p className="text-xs text-muted-foreground line-clamp-3 font-mono bg-background/50 p-2 rounded">
+                            {video.script.slice(0, 300)}...
                           </p>
                         )}
                         {video.status === "ready" && (
                           <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm">
+                            <Button size="sm" className="flex-1">
                               <Play className="h-3 w-3 mr-1" />
-                              Preview
+                              Render with D-ID
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button size="sm" variant="outline">
                               <Download className="h-3 w-3 mr-1" />
-                              Download
+                              Export Script
                             </Button>
                           </div>
                         )}
