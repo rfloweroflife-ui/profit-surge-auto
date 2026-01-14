@@ -126,7 +126,7 @@ export function useXAuth() {
       const { data, error } = await supabase.functions.invoke("x-auth", {
         body: { 
           action: "get_auth_url",
-          redirectUri: `${window.location.origin}${window.location.pathname}`
+          redirectUri: `${window.location.origin}/auth/x/callback`
         }
       });
 
