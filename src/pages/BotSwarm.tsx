@@ -11,7 +11,8 @@ import {
   Activity,
   Play,
   Plus,
-  Loader2
+  Loader2,
+  Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -28,6 +29,7 @@ import { ActivityFeed } from "@/components/bots/ActivityFeed";
 import { CompetitorPanel } from "@/components/bots/CompetitorPanel";
 import { CommandCenter } from "@/components/bots/CommandCenter";
 import { DecisionLog } from "@/components/bots/DecisionLog";
+import { ProductAssignment } from "@/components/bots/ProductAssignment";
 
 export default function BotSwarm() {
   const { data: teams, isLoading: teamsLoading, refetch: refetchTeams } = useBotTeams();
@@ -149,13 +151,21 @@ export default function BotSwarm() {
         </Card>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="teams" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full max-w-lg">
+        <Tabs defaultValue="products" className="space-y-4">
+          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+            <TabsTrigger value="products">
+              <Package className="h-3 w-3 mr-1" />
+              Products
+            </TabsTrigger>
             <TabsTrigger value="teams">Teams</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="decisions">Decisions</TabsTrigger>
             <TabsTrigger value="competitors">Intel</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="products">
+            <ProductAssignment />
+          </TabsContent>
 
           <TabsContent value="teams" className="space-y-4">
             <CommandCenter onCommandExecuted={refetchTeams} />
