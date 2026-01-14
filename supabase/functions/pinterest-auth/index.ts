@@ -183,6 +183,110 @@ serve(async (req) => {
       );
     }
 
+    // Send conversion event using PINTEREST_CONVERSION_TOKEN
+    if (action === "send_conversion") {
+      const CONVERSION_TOKEN = Deno.env.get("PINTEREST_CONVERSION_TOKEN");
+      
+      if (!CONVERSION_TOKEN) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Pinterest Conversion Token not configured",
+            needsSetup: true 
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { event_name, event_time, event_id, user_data, custom_data, event_source_url, action_source } = await req.json().catch(() => ({}));
+      
+      const conversionData = {
+        data: [{
+          event_name: event_name || "checkout",
+          event_time: event_time || Math.floor(Date.now() / 1000),
+          event_id: event_id || crypto.randomUUID(),
+          user_data: user_data || {},
+          custom_data: custom_data || {},
+          event_source_url: event_source_url || "",
+          action_source: action_source || "web"
+        }]
+      };
+
+      const conversionResponse = await fetch("https://api.pinterest.com/v5/ad_accounts/conversions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${CONVERSION_TOKEN}`
+        },
+        body: JSON.stringify(conversionData)
+      });
+
+      if (!conversionResponse.ok) {
+        const errorData = await conversionResponse.text();
+        console.error("Pinterest conversion API error:", errorData);
+        return new Response(
+          JSON.stringify({ error: "Failed to send conversion event", details: errorData }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const result = await conversionResponse.json();
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Conversion event sent successfully",
+          result 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get conversion stats
+    if (action === "get_conversion_stats") {
+      const CONVERSION_TOKEN = Deno.env.get("PINTEREST_CONVERSION_TOKEN");
+      
+      if (!CONVERSION_TOKEN) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Pinterest Conversion Token not configured",
+            needsSetup: true 
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate token by making a test API call
+      const validateResponse = await fetch("https://api.pinterest.com/v5/user_account", {
+        headers: {
+          "Authorization": `Bearer ${CONVERSION_TOKEN}`
+        }
+      });
+
+      if (!validateResponse.ok) {
+        return new Response(
+          JSON.stringify({ 
+            connected: false,
+            error: "Invalid or expired conversion token"
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userData = await validateResponse.json();
+      
+      return new Response(
+        JSON.stringify({ 
+          connected: true,
+          conversionTokenValid: true,
+          user: {
+            id: userData.id,
+            username: userData.username
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Invalid action" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
