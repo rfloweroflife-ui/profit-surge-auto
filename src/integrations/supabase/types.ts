@@ -190,6 +190,192 @@ export type Database = {
           },
         ]
       }
+      cj_connections: {
+        Row: {
+          api_key: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          updated_at: string
+          user_identifier: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Relationships: []
+      }
+      cj_inventory_logs: {
+        Row: {
+          change_type: string | null
+          cj_product_id: string
+          created_at: string
+          id: string
+          new_count: number | null
+          previous_count: number | null
+        }
+        Insert: {
+          change_type?: string | null
+          cj_product_id: string
+          created_at?: string
+          id?: string
+          new_count?: number | null
+          previous_count?: number | null
+        }
+        Update: {
+          change_type?: string | null
+          cj_product_id?: string
+          created_at?: string
+          id?: string
+          new_count?: number | null
+          previous_count?: number | null
+        }
+        Relationships: []
+      }
+      cj_orders: {
+        Row: {
+          carrier: string | null
+          cj_cost: number | null
+          cj_order_id: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          error_message: string | null
+          fulfillment_status: string | null
+          id: string
+          order_items: Json | null
+          profit: number | null
+          shipping_address: Json | null
+          shopify_order_id: string
+          shopify_order_number: string | null
+          status: string | null
+          total_amount: number | null
+          tracking_number: string | null
+          tracking_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier?: string | null
+          cj_cost?: number | null
+          cj_order_id?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          error_message?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          order_items?: Json | null
+          profit?: number | null
+          shipping_address?: Json | null
+          shopify_order_id: string
+          shopify_order_number?: string | null
+          status?: string | null
+          total_amount?: number | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string | null
+          cj_cost?: number | null
+          cj_order_id?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          error_message?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          order_items?: Json | null
+          profit?: number | null
+          shipping_address?: Json | null
+          shopify_order_id?: string
+          shopify_order_number?: string | null
+          status?: string | null
+          total_amount?: number | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cj_products: {
+        Row: {
+          category: string | null
+          cj_price: number | null
+          cj_product_id: string
+          created_at: string
+          id: string
+          image_url: string | null
+          inventory_count: number | null
+          is_synced: boolean | null
+          last_inventory_update: string | null
+          product_name: string
+          product_sku: string | null
+          sell_price: number | null
+          shipping_time: string | null
+          shopify_product_id: string | null
+          shopify_variant_id: string | null
+          supplier_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          cj_price?: number | null
+          cj_product_id: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_count?: number | null
+          is_synced?: boolean | null
+          last_inventory_update?: string | null
+          product_name: string
+          product_sku?: string | null
+          sell_price?: number | null
+          shipping_time?: string | null
+          shopify_product_id?: string | null
+          shopify_variant_id?: string | null
+          supplier_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          cj_price?: number | null
+          cj_product_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_count?: number | null
+          is_synced?: boolean | null
+          last_inventory_update?: string | null
+          product_name?: string
+          product_sku?: string | null
+          sell_price?: number | null
+          shipping_time?: string | null
+          shopify_product_id?: string | null
+          shopify_variant_id?: string | null
+          supplier_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       competitor_analysis: {
         Row: {
           analyzed_by: string | null
