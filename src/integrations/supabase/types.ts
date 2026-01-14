@@ -856,6 +856,196 @@ export type Database = {
           },
         ]
       }
+      x_analytics: {
+        Row: {
+          connection_id: string | null
+          created_at: string
+          date: string
+          id: string
+          link_clicks: number | null
+          new_followers: number | null
+          profile_visits: number | null
+          total_engagements: number | null
+          total_impressions: number | null
+          total_likes: number | null
+          total_replies: number | null
+          total_retweets: number | null
+          tweets_posted: number | null
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          link_clicks?: number | null
+          new_followers?: number | null
+          profile_visits?: number | null
+          total_engagements?: number | null
+          total_impressions?: number | null
+          total_likes?: number | null
+          total_replies?: number | null
+          total_retweets?: number | null
+          tweets_posted?: number | null
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          link_clicks?: number | null
+          new_followers?: number | null
+          profile_visits?: number | null
+          total_engagements?: number | null
+          total_impressions?: number | null
+          total_likes?: number | null
+          total_replies?: number | null
+          total_retweets?: number | null
+          tweets_posted?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "x_analytics_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "x_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      x_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          is_active: boolean | null
+          refresh_token: string | null
+          scopes: string[] | null
+          token_type: string | null
+          tweet_count: number | null
+          updated_at: string
+          user_identifier: string
+          x_name: string | null
+          x_profile_image: string | null
+          x_user_id: string | null
+          x_username: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_type?: string | null
+          tweet_count?: number | null
+          updated_at?: string
+          user_identifier?: string
+          x_name?: string | null
+          x_profile_image?: string | null
+          x_user_id?: string | null
+          x_username?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_type?: string | null
+          tweet_count?: number | null
+          updated_at?: string
+          user_identifier?: string
+          x_name?: string | null
+          x_profile_image?: string | null
+          x_user_id?: string | null
+          x_username?: string | null
+        }
+        Relationships: []
+      }
+      x_tweets: {
+        Row: {
+          clicks: number | null
+          connection_id: string | null
+          content: string
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          impressions: number | null
+          is_thread_parent: boolean | null
+          likes: number | null
+          media_urls: string[] | null
+          posted_at: string | null
+          product_id: string | null
+          quotes: number | null
+          replies: number | null
+          retweets: number | null
+          scheduled_at: string | null
+          status: string | null
+          thread_id: string | null
+          tweet_id: string | null
+        }
+        Insert: {
+          clicks?: number | null
+          connection_id?: string | null
+          content: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          impressions?: number | null
+          is_thread_parent?: boolean | null
+          likes?: number | null
+          media_urls?: string[] | null
+          posted_at?: string | null
+          product_id?: string | null
+          quotes?: number | null
+          replies?: number | null
+          retweets?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          thread_id?: string | null
+          tweet_id?: string | null
+        }
+        Update: {
+          clicks?: number | null
+          connection_id?: string | null
+          content?: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          impressions?: number | null
+          is_thread_parent?: boolean | null
+          likes?: number | null
+          media_urls?: string[] | null
+          posted_at?: string | null
+          product_id?: string | null
+          quotes?: number | null
+          replies?: number | null
+          retweets?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          thread_id?: string | null
+          tweet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "x_tweets_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "x_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
