@@ -4,6 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import VideoStudio from "./pages/VideoStudio";
+import Integrations from "./pages/Integrations";
+import CEOBrain from "./pages/CEOBrain";
+import BotSwarm from "./pages/BotSwarm";
+import SalesTracker from "./pages/SalesTracker";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,7 +24,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/products" element={<Products />} />
+          <Route path="/product/:handle" element={<ProductDetail />} />
+          <Route path="/video-studio" element={<VideoStudio />} />
+          <Route path="/integrations" element={<Integrations />} />
+          <Route path="/ceo-brain" element={<CEOBrain />} />
+          <Route path="/bot-swarm" element={<BotSwarm />} />
+          <Route path="/sales" element={<SalesTracker />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
