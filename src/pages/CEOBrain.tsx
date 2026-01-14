@@ -24,6 +24,16 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/hooks/useProducts";
+import { Workflow } from "lucide-react";
+
+interface ToolExecution {
+  tool_call_id: string;
+  function_name: string;
+  success: boolean;
+  workflow_name?: string;
+  reason?: string;
+  error?: string;
+}
 
 interface HistoryItem {
   type: "user" | "ai";
@@ -31,6 +41,7 @@ interface HistoryItem {
   timestamp: Date;
   status?: "success" | "error";
   action?: string;
+  toolExecutions?: ToolExecution[];
 }
 
 export default function CEOBrain() {
@@ -46,13 +57,21 @@ export default function CEOBrain() {
   const quickCommands = [
     "Generate 20 Pins for Mad Hippie Vitamin C Serum and schedule daily",
     "Generate 10 viral Reels for Premium Peptide Complex Serum",
-    "Create before/after content for all serums",
+    "Run the Auto-Post to Pinterest workflow",
+    "List all available n8n workflows",
+    "Execute the social posting automation",
     "Analyze competitor Glow Recipe and find gaps",
     "Scale winners 5x and kill underperforming campaigns",
     "Deploy all 200 bots on Pinterest campaign",
-    "Generate video ad scripts for 24K Gold Radiance Serum",
+    "Trigger the competitor analysis workflow",
     "Auto-post 50 Pins tonight at peak hours 7-9 PM EST"
   ];
+
+  // Get n8n config from localStorage
+  const getN8nConfig = () => ({
+    baseUrl: localStorage.getItem("n8n_base_url") || "https://n8n.profitreaper.com",
+    apiKey: localStorage.getItem("n8n_api_key") || ""
+  });
 
   // Scroll to bottom when history updates
   useEffect(() => {
@@ -104,6 +123,8 @@ export default function CEOBrain() {
     }]);
 
     try {
+      const n8nConfig = getN8nConfig();
+      
       const { data, error } = await supabase.functions.invoke("ceo-brain", {
         body: { 
           command: userCommand,
@@ -118,17 +139,29 @@ export default function CEOBrain() {
             lastOptimization: lastOptimization?.toISOString(),
             botCount: 200,
             teamCount: 40
-          }
+          },
+          n8nConfig: n8nConfig.apiKey ? n8nConfig : undefined
         }
       });
 
       if (error) throw error;
 
+      // Check for tool executions (n8n workflows)
+      if (data.toolExecutions && data.toolExecutions.length > 0) {
+        const successfulExecutions = data.toolExecutions.filter((t: ToolExecution) => t.success);
+        if (successfulExecutions.length > 0) {
+          toast.success("Workflow Executed!", {
+            description: `Ran ${successfulExecutions.length} n8n workflow(s)`
+          });
+        }
+      }
+
       setHistory(prev => [...prev, { 
         type: "ai", 
         text: data.response,
         timestamp: new Date(),
-        status: "success"
+        status: "success",
+        toolExecutions: data.toolExecutions
       }]);
 
       toast.success("Command executed", {
@@ -148,7 +181,36 @@ export default function CEOBrain() {
     }
   };
 
-  const formatResponse = (text: string) => {
+  const formatResponse = (text: string, toolExecutions?: ToolExecution[]) => {
+    const renderToolExecutions = () => {
+      if (!toolExecutions || toolExecutions.length === 0) return null;
+      
+      return (
+        <div className="mt-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Workflow className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-medium text-orange-400">n8n Workflows Executed</span>
+          </div>
+          <div className="space-y-1">
+            {toolExecutions.map((exec, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                {exec.success ? (
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-3 w-3 text-red-500" />
+                )}
+                <span className={exec.success ? "text-green-400" : "text-red-400"}>
+                  {exec.workflow_name || exec.function_name}
+                  {exec.reason && <span className="text-muted-foreground ml-1">- {exec.reason}</span>}
+                  {exec.error && <span className="text-red-400 ml-1">Error: {exec.error}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
     try {
       const parsed = JSON.parse(text);
       return (
@@ -176,10 +238,16 @@ export default function CEOBrain() {
           {parsed.schedule && (
             <p className="text-xs text-accent">📅 {parsed.schedule}</p>
           )}
+          {renderToolExecutions()}
         </div>
       );
     } catch {
-      return <p className="text-sm whitespace-pre-wrap">{text}</p>;
+      return (
+        <div>
+          <p className="text-sm whitespace-pre-wrap">{text}</p>
+          {renderToolExecutions()}
+        </div>
+      );
     }
   };
 
@@ -292,7 +360,7 @@ export default function CEOBrain() {
                           {item.timestamp.toLocaleTimeString()}
                         </span>
                       </div>
-                      {item.type === "ai" ? formatResponse(item.text) : (
+                      {item.type === "ai" ? formatResponse(item.text, item.toolExecutions) : (
                         <p className="text-sm">{item.text}</p>
                       )}
                     </div>
