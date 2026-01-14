@@ -27,8 +27,10 @@ import {
   ExternalLink,
   Search,
   Zap,
-  Target
+  Target,
+  BarChart3
 } from "lucide-react";
+import { PinterestAnalytics } from "@/components/analytics/PinterestAnalytics";
 import { toast } from "sonner";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
@@ -621,6 +623,10 @@ export default function SocialPoster() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
+            {/* Pinterest Analytics Section */}
+            <PinterestAnalytics />
+
+            {/* Overall Stats */}
             <div className="grid gap-4 md:grid-cols-4">
               <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/30">
                 <CardContent className="p-4">
