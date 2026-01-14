@@ -31,6 +31,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { PinterestAnalytics } from "@/components/analytics/PinterestAnalytics";
+import { XDashboard } from "@/components/x/XDashboard";
 import { toast } from "sonner";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
@@ -258,8 +259,9 @@ export default function SocialPoster() {
         </div>
 
         <Tabs defaultValue="create" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
             <TabsTrigger value="create">Create Content</TabsTrigger>
+            <TabsTrigger value="x-twitter">X (Twitter)</TabsTrigger>
             <TabsTrigger value="queue">Schedule Queue</TabsTrigger>
             <TabsTrigger value="history">Post History</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -577,6 +579,10 @@ export default function SocialPoster() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="x-twitter" className="space-y-6">
+            <XDashboard />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
