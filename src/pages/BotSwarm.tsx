@@ -21,7 +21,9 @@ import {
   BarChart3,
   MessageCircle,
   CheckCircle,
-  Swords
+  Swords,
+  Video,
+  Flame
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -40,7 +42,8 @@ import { CommandCenter } from "@/components/bots/CommandCenter";
 import { DecisionLog } from "@/components/bots/DecisionLog";
 import { ProductAssignment } from "@/components/bots/ProductAssignment";
 import { SwarmWarRoom } from "@/components/bots/SwarmWarRoom";
-import { SampleContentPreview, SamplePinPreview } from "@/components/bots/SampleContent";
+import { SampleContentPreview, SamplePinPreview, SampleReelPreview } from "@/components/bots/SampleContent";
+import { BulkCampaignGenerator } from "@/components/bots/BulkCampaignGenerator";
 import { useProducts } from "@/hooks/useProducts";
 
 const BOT_ROLES = [
@@ -210,10 +213,14 @@ export default function BotSwarm() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="warroom" className="space-y-4">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
             <TabsTrigger value="warroom">
               <Swords className="h-3 w-3 mr-1" />
               War Room
+            </TabsTrigger>
+            <TabsTrigger value="campaigns">
+              <Video className="h-3 w-3 mr-1" />
+              Bulk Campaigns
             </TabsTrigger>
             <TabsTrigger value="products">
               <Package className="h-3 w-3 mr-1" />
@@ -228,15 +235,22 @@ export default function BotSwarm() {
           <TabsContent value="warroom">
             <div className="space-y-6">
               <SwarmWarRoom onRefresh={refetchTeams} />
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-6 lg:grid-cols-4">
                 <div className="lg:col-span-2">
                   <SampleContentPreview />
                 </div>
                 <div>
                   <SamplePinPreview />
                 </div>
+                <div>
+                  <SampleReelPreview />
+                </div>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="campaigns">
+            <BulkCampaignGenerator />
           </TabsContent>
 
           <TabsContent value="products">
