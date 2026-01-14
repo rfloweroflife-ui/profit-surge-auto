@@ -11,6 +11,7 @@ import Integrations from "./pages/Integrations";
 import CEOBrain from "./pages/CEOBrain";
 import BotSwarm from "./pages/BotSwarm";
 import SalesTracker from "./pages/SalesTracker";
+import SocialPoster from "./pages/SocialPoster";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/ceo-brain" element={<CEOBrain />} />
           <Route path="/bot-swarm" element={<BotSwarm />} />
           <Route path="/sales" element={<SalesTracker />} />
+          <Route path="/social-poster" element={<SocialPoster />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
