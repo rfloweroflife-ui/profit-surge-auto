@@ -432,6 +432,246 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          bounces: number | null
+          campaign_type: string | null
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          id: string
+          list_id: string | null
+          name: string
+          opens: number | null
+          preview_text: string | null
+          recipients_count: number | null
+          revenue: number | null
+          scheduled_at: string | null
+          segment_id: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          template_id: string | null
+          unsubscribes: number | null
+          updated_at: string
+        }
+        Insert: {
+          bounces?: number | null
+          campaign_type?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          list_id?: string | null
+          name: string
+          opens?: number | null
+          preview_text?: string | null
+          recipients_count?: number | null
+          revenue?: number | null
+          scheduled_at?: string | null
+          segment_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          template_id?: string | null
+          unsubscribes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bounces?: number | null
+          campaign_type?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          list_id?: string | null
+          name?: string
+          opens?: number | null
+          preview_text?: string | null
+          recipients_count?: number | null
+          revenue?: number | null
+          scheduled_at?: string | null
+          segment_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          template_id?: string | null
+          unsubscribes?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_flows: {
+        Row: {
+          created_at: string
+          flow_steps: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          revenue_generated: number | null
+          total_completed: number | null
+          total_triggered: number | null
+          trigger_conditions: Json | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          flow_steps?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          revenue_generated?: number | null
+          total_completed?: number | null
+          total_triggered?: number | null
+          trigger_conditions?: Json | null
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          flow_steps?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          revenue_generated?: number | null
+          total_completed?: number | null
+          total_triggered?: number | null
+          trigger_conditions?: Json | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_subscribers: {
+        Row: {
+          created_at: string
+          custom_properties: Json | null
+          email: string
+          first_name: string | null
+          id: string
+          is_subscribed: boolean | null
+          last_name: string | null
+          phone: string | null
+          source: string | null
+          subscribed_at: string | null
+          tags: string[] | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_properties?: Json | null
+          email: string
+          first_name?: string | null
+          id?: string
+          is_subscribed?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          source?: string | null
+          subscribed_at?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_properties?: Json | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_subscribed?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          source?: string | null
+          subscribed_at?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          html_content: string | null
+          id: string
+          is_active: boolean | null
+          json_content: Json | null
+          name: string
+          preview_image_url: string | null
+          subject: string | null
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          json_content?: Json | null
+          name: string
+          preview_image_url?: string | null
+          subject?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          json_content?: Json | null
+          name?: string
+          preview_image_url?: string | null
+          subject?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      klaviyo_connections: {
+        Row: {
+          account_id: string | null
+          api_key: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          private_key: string | null
+          public_key: string | null
+          updated_at: string
+          user_identifier: string
+        }
+        Insert: {
+          account_id?: string | null
+          api_key: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          private_key?: string | null
+          public_key?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Update: {
+          account_id?: string | null
+          api_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          private_key?: string | null
+          public_key?: string | null
+          updated_at?: string
+          user_identifier?: string
+        }
+        Relationships: []
+      }
       pinterest_connections: {
         Row: {
           access_token: string

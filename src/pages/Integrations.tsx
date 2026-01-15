@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePinterestAuth } from "@/hooks/usePinterestAuth";
 import { WhatsAppDashboard } from "@/components/whatsapp/WhatsAppDashboard";
 import { CJDashboard } from "@/components/cj/CJDashboard";
+import { KlaviyoDashboard } from "@/components/klaviyo/KlaviyoDashboard";
 import { 
   Instagram, 
   Link2, 
@@ -38,7 +39,8 @@ import {
   Users,
   TrendingUp,
   Shield,
-  Brain
+  Brain,
+  Mail
 } from "lucide-react";
 
 interface IntegrationResult {
@@ -704,10 +706,14 @@ export default function Integrations() {
         </Card>
 
         <Tabs defaultValue="social" className="space-y-6">
-          <TabsList className="bg-secondary/50 p-1">
+          <TabsList className="bg-secondary/50 p-1 flex-wrap">
             <TabsTrigger value="social" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Globe className="h-4 w-4 mr-2" />
               Social Platforms
+            </TabsTrigger>
+            <TabsTrigger value="klaviyo" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Mail className="h-4 w-4 mr-2" />
+              Klaviyo Email
             </TabsTrigger>
             <TabsTrigger value="automation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Zap className="h-4 w-4 mr-2" />
@@ -801,6 +807,11 @@ export default function Integrations() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Klaviyo Tab */}
+          <TabsContent value="klaviyo" className="space-y-6">
+            <KlaviyoDashboard />
           </TabsContent>
 
           {/* Automation Tab */}
