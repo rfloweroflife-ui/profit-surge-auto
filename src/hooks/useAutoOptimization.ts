@@ -36,7 +36,7 @@ export function useAutoOptimization(intervalMinutes = 15) {
     losersKilled: 0,
     isRunning: false,
   });
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isActive, setIsActive] = useState(false);
 
   const runOptimization = useCallback(async () => {
