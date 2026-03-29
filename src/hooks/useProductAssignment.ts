@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export interface GeneratedContent {
   product: string;
@@ -21,9 +22,12 @@ export interface Product {
 // Assign products to teams
 export function useAssignProducts() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (assignments: { teamId: string; productName: string; platform: string }[]) => {
+      if (!user) throw new Error("Not authenticated");
+
       for (const assignment of assignments) {
         await supabase
           .from("bot_teams")
@@ -34,13 +38,13 @@ export function useAssignProducts() {
           })
           .eq("id", assignment.teamId);
 
-        // Log the assignment
         await supabase.from("bot_activities").insert({
           team_id: assignment.teamId,
           action: `Team assigned to ${assignment.productName} on ${assignment.platform}`,
           action_type: "decision",
           target: assignment.productName,
           result: "Assignment complete",
+          user_id: user.id,
         });
       }
 
@@ -82,10 +86,12 @@ export function useGenerateViralContent() {
 // Auto-assign top products to available teams
 export function useAutoAssignProducts() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (products: { title: string; handle: string }[]) => {
-      // Get available teams
+      if (!user) throw new Error("Not authenticated");
+
       const { data: teams, error: teamsError } = await supabase
         .from("bot_teams")
         .select("id, name, assigned_platform")
@@ -96,7 +102,6 @@ export function useAutoAssignProducts() {
 
       const assignments: { teamId: string; productName: string; platform: string }[] = [];
 
-      // Assign 2 teams per product (one for Pinterest, one for Instagram)
       products.forEach((product, index) => {
         const pinterestTeam = teams?.[index * 2];
         const instagramTeam = teams?.[index * 2 + 1];
@@ -117,7 +122,6 @@ export function useAutoAssignProducts() {
         }
       });
 
-      // Execute assignments
       for (const assignment of assignments) {
         await supabase
           .from("bot_teams")
@@ -129,7 +133,6 @@ export function useAutoAssignProducts() {
           .eq("id", assignment.teamId);
       }
 
-      // Create team decisions for each assignment
       for (const assignment of assignments) {
         await supabase.from("team_decisions").insert({
           team_id: assignment.teamId,
@@ -139,6 +142,7 @@ export function useAutoAssignProducts() {
           consensus_reached: true,
           executed: true,
           outcome: "Assignment complete - generating content",
+          user_id: user.id,
         });
       }
 
