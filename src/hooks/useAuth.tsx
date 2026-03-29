@@ -44,15 +44,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
-    const [profileRes, subRes] = await Promise.all([
+    const [profileRes, subRes, roleRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase.from('subscriptions').select('*').eq('user_id', userId).single(),
+      supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle(),
     ]);
     if (profileRes.data) setProfile(profileRes.data as Profile);
     if (subRes.data) setSubscription(subRes.data as unknown as Subscription);
+    setIsAdmin(!!roleRes.data);
   };
 
   useEffect(() => {
