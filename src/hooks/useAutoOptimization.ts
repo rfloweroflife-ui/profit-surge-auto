@@ -43,72 +43,114 @@ export function useAutoOptimization(intervalMinutes = 15) {
     setStats((prev) => ({ ...prev, isRunning: true }));
 
     try {
-      // 1. Get all teams with performance data
+      // 1. Get all active teams
       const { data: teams, error: teamsError } = await supabase
         .from("bot_teams")
         .select("*")
         .eq("status", "active");
 
       if (teamsError) throw teamsError;
+      if (!teams || teams.length === 0) {
+        setStats((prev) => ({
+          ...prev,
+          isRunning: false,
+          lastRun: new Date(),
+          nextRun: new Date(Date.now() + intervalMinutes * 60 * 1000),
+        }));
+        return;
+      }
 
       let winnersScaled = 0;
       let losersKilled = 0;
 
-      // 2. Analyze and optimize each team
-      for (const team of teams || []) {
+      // 2. Classify teams into winners, losers, and neutral
+      const winnerUpdates: { id: string; score: number; posts: number; name: string; engagement: number }[] = [];
+      const loserInserts: { team_id: string; name: string; engagement: number }[] = [];
+
+      for (const team of teams) {
         const engagementRate = team.engagement_rate || 0;
-        const performanceScore = team.performance_score || 50;
+        const performanceScore = team.performance_score || 0;
 
-        // Winner: Scale up (engagement > 3%)
+        // Winner: engagement > 3% AND score > 70
         if (engagementRate > 3 && performanceScore > 70) {
-          winnersScaled++;
-          await supabase.from("team_decisions").insert({
-            team_id: team.id,
-            decision_type: "scale",
-            decision: `Scale ${team.name} - High engagement: ${engagementRate.toFixed(1)}%`,
-            reasoning: `Performance score ${performanceScore}% exceeds threshold. Increasing post frequency.`,
-            consensus_reached: true,
-            executed: true,
-            outcome: "Increased posting frequency by 2x",
+          winnerUpdates.push({
+            id: team.id,
+            score: Math.min(100, performanceScore + 5),
+            posts: (team.posts_created || 0) + 5,
+            name: team.name,
+            engagement: engagementRate,
           });
-
-          // Update team performance
-          await supabase
-            .from("bot_teams")
-            .update({
-              performance_score: Math.min(100, performanceScore + 5),
-              posts_created: (team.posts_created || 0) + 5,
-            })
-            .eq("id", team.id);
         }
 
-        // Loser: Pause underperformers (engagement < 0.5%)
-        if (engagementRate < 0.5 && performanceScore < 30) {
-          losersKilled++;
-          await supabase.from("team_decisions").insert({
+        // Loser: engagement < 0.5% AND score < 30
+        if (engagementRate < 0.5 && performanceScore < 30 && performanceScore > 0) {
+          loserInserts.push({
             team_id: team.id,
-            decision_type: "pause",
-            decision: `Pause ${team.name} - Low engagement: ${engagementRate.toFixed(1)}%`,
-            reasoning: `Performance below threshold. Pausing to reassess strategy.`,
-            consensus_reached: true,
-            executed: true,
-            outcome: "Team reassigned to new product",
+            name: team.name,
+            engagement: engagementRate,
           });
         }
       }
 
-      // 3. Log activity
+      // 3. Batch winner updates
+      const winnerPromises = winnerUpdates.map((w) =>
+        supabase
+          .from("bot_teams")
+          .update({
+            performance_score: w.score,
+            posts_created: w.posts,
+          })
+          .eq("id", w.id)
+      );
+      await Promise.all(winnerPromises);
+      winnersScaled = winnerUpdates.length;
+
+      // 4. Batch winner decisions
+      if (winnerUpdates.length > 0) {
+        await supabase.from("team_decisions").insert(
+          winnerUpdates.map((w) => ({
+            team_id: w.id,
+            decision_type: "scale",
+            decision: `Scale ${w.name} - High engagement: ${w.engagement.toFixed(1)}%`,
+            reasoning: `Performance score exceeds threshold. Increasing post frequency.`,
+            consensus_reached: true,
+            executed: true,
+            outcome: "Increased posting frequency by 2x",
+          }))
+        );
+      }
+
+      // 5. Batch loser decisions
+      if (loserInserts.length > 0) {
+        await supabase.from("team_decisions").insert(
+          loserInserts.map((l) => ({
+            team_id: l.team_id,
+            decision_type: "pause",
+            decision: `Pause ${l.name} - Low engagement: ${l.engagement.toFixed(1)}%`,
+            reasoning: `Performance below threshold. Pausing to reassess strategy.`,
+            consensus_reached: true,
+            executed: true,
+            outcome: "Team reassigned to new product",
+          }))
+        );
+        losersKilled = loserInserts.length;
+      }
+
+      // 6. Log activity
       await supabase.from("bot_activities").insert({
-        action: `Optimization cycle complete: ${winnersScaled} winners scaled, ${losersKilled} losers paused`,
+        action: `Optimization cycle complete: ${winnersScaled} winners scaled, ${losersKilled} losers paused, ${teams.length} teams evaluated`,
         action_type: "optimize",
         target: "global",
-        result: JSON.stringify({ winnersScaled, losersKilled }),
+        result: JSON.stringify({ winnersScaled, losersKilled, teamsEvaluated: teams.length }),
       });
+
+      const now = new Date();
+      const nextRun = new Date(now.getTime() + intervalMinutes * 60 * 1000);
 
       setStats((prev) => ({
         ...prev,
-        lastRun: new Date(),
-        nextRun: new Date(Date.now() + intervalMinutes * 60 * 1000),
+        lastRun: now,
+        nextRun,
         runsCompleted: prev.runsCompleted + 1,
         winnersScaled: prev.winnersScaled + winnersScaled,
         losersKilled: prev.losersKilled + losersKilled,
@@ -119,14 +161,15 @@ export function useAutoOptimization(intervalMinutes = 15) {
       queryClient.invalidateQueries({ queryKey: ["bot_teams"] });
       queryClient.invalidateQueries({ queryKey: ["bots"] });
 
-      if (winnersScaled > 0 || losersKilled > 0) {
-        toast.success("🤖 Optimization Complete", {
-          description: `${winnersScaled} winners scaled, ${losersKilled} underperformers paused`,
-        });
-      }
+      toast.success("Optimization Complete", {
+        description: `${teams.length} teams evaluated. ${winnersScaled} scaled, ${losersKilled} paused.`,
+      });
     } catch (error) {
       console.error("Optimization error:", error);
       setStats((prev) => ({ ...prev, isRunning: false }));
+      toast.error("Optimization failed", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   }, [intervalMinutes, queryClient]);
 
@@ -147,7 +190,7 @@ export function useAutoOptimization(intervalMinutes = 15) {
       runOptimization();
     }, intervalMinutes * 60 * 1000);
 
-    toast.success(`⚡ Auto-Optimization Enabled`, {
+    toast.success("Auto-Optimization Enabled", {
       description: `Running every ${intervalMinutes} minutes`,
     });
   }, [intervalMinutes, runOptimization]);
@@ -185,46 +228,55 @@ export function useAutoAssignToProducts() {
   const assignProductsToTeams = useCallback(
     async (products: ShopifyProduct[]) => {
       try {
-        // Get all teams
         const { data: teams, error: teamsError } = await supabase
           .from("bot_teams")
           .select("*")
           .order("created_at", { ascending: true });
 
         if (teamsError) throw teamsError;
+        if (!teams || teams.length === 0) throw new Error("No teams available");
 
         let assignedCount = 0;
+        const teamUpdates: PromiseLike<unknown>[] = [];
+        const decisionInserts: {
+          team_id: string;
+          decision_type: string;
+          decision: string;
+          reasoning: string;
+          consensus_reached: boolean;
+          executed: boolean;
+        }[] = [];
 
-        // Assign each product to 2 teams (1 Pinterest, 1 Instagram)
-        for (let i = 0; i < products.length && i * 2 + 1 < (teams?.length || 0); i++) {
+        for (let i = 0; i < products.length && i * 2 + 1 < teams.length; i++) {
           const product = products[i];
-          const pinterestTeam = teams![i * 2];
-          const instagramTeam = teams![i * 2 + 1];
+          const pinterestTeam = teams[i * 2];
+          const instagramTeam = teams[i * 2 + 1];
 
-          // Assign Pinterest team
-          await supabase
-            .from("bot_teams")
-            .update({
-              assigned_product: product.node.title,
-              assigned_platform: "pinterest",
-              status: "active",
-              strategy: `Viral Pin campaign for ${product.node.title}`,
-            })
-            .eq("id", pinterestTeam.id);
+          teamUpdates.push(
+            supabase
+              .from("bot_teams")
+              .update({
+                assigned_product: product.node.title,
+                assigned_platform: "pinterest",
+                status: "active",
+                strategy: `Viral Pin campaign for ${product.node.title}`,
+              })
+              .eq("id", pinterestTeam.id)
+          );
 
-          // Assign Instagram team
-          await supabase
-            .from("bot_teams")
-            .update({
-              assigned_product: product.node.title,
-              assigned_platform: "instagram",
-              status: "active",
-              strategy: `Reels campaign for ${product.node.title}`,
-            })
-            .eq("id", instagramTeam.id);
+          teamUpdates.push(
+            supabase
+              .from("bot_teams")
+              .update({
+                assigned_product: product.node.title,
+                assigned_platform: "instagram",
+                status: "active",
+                strategy: `Reels campaign for ${product.node.title}`,
+              })
+              .eq("id", instagramTeam.id)
+          );
 
-          // Log decisions
-          await supabase.from("team_decisions").insert([
+          decisionInserts.push(
             {
               team_id: pinterestTeam.id,
               decision_type: "target",
@@ -240,13 +292,20 @@ export function useAutoAssignToProducts() {
               reasoning: `Product assigned for Reels campaign at $${product.node.priceRange.minVariantPrice.amount}`,
               consensus_reached: true,
               executed: true,
-            },
-          ]);
+            }
+          );
 
           assignedCount += 2;
         }
 
-        // Log activity
+        // Batch all updates in parallel
+        await Promise.all(teamUpdates);
+
+        // Batch all decision inserts
+        if (decisionInserts.length > 0) {
+          await supabase.from("team_decisions").insert(decisionInserts);
+        }
+
         await supabase.from("bot_activities").insert({
           action: `Auto-assigned ${products.length} products to ${assignedCount} teams`,
           action_type: "decision",
