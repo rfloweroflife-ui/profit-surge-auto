@@ -2,6 +2,7 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "./useAuth";
 
 interface OptimizationStats {
   lastRun: Date | null;
@@ -28,6 +29,7 @@ interface ShopifyProduct {
 
 export function useAutoOptimization(intervalMinutes = 15) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [stats, setStats] = useState<OptimizationStats>({
     lastRun: null,
     nextRun: null,
@@ -40,10 +42,10 @@ export function useAutoOptimization(intervalMinutes = 15) {
   const [isActive, setIsActive] = useState(false);
 
   const runOptimization = useCallback(async () => {
+    if (!user) return;
     setStats((prev) => ({ ...prev, isRunning: true }));
 
     try {
-      // 1. Get all active teams
       const { data: teams, error: teamsError } = await supabase
         .from("bot_teams")
         .select("*")
@@ -63,7 +65,6 @@ export function useAutoOptimization(intervalMinutes = 15) {
       let winnersScaled = 0;
       let losersKilled = 0;
 
-      // 2. Classify teams into winners, losers, and neutral
       const winnerUpdates: { id: string; score: number; posts: number; name: string; engagement: number }[] = [];
       const loserInserts: { team_id: string; name: string; engagement: number }[] = [];
 
@@ -71,7 +72,6 @@ export function useAutoOptimization(intervalMinutes = 15) {
         const engagementRate = team.engagement_rate || 0;
         const performanceScore = team.performance_score || 0;
 
-        // Winner: engagement > 3% AND score > 70
         if (engagementRate > 3 && performanceScore > 70) {
           winnerUpdates.push({
             id: team.id,
@@ -82,7 +82,6 @@ export function useAutoOptimization(intervalMinutes = 15) {
           });
         }
 
-        // Loser: engagement < 0.5% AND score < 30
         if (engagementRate < 0.5 && performanceScore < 30 && performanceScore > 0) {
           loserInserts.push({
             team_id: team.id,
@@ -92,20 +91,15 @@ export function useAutoOptimization(intervalMinutes = 15) {
         }
       }
 
-      // 3. Batch winner updates
       const winnerPromises = winnerUpdates.map((w) =>
         supabase
           .from("bot_teams")
-          .update({
-            performance_score: w.score,
-            posts_created: w.posts,
-          })
+          .update({ performance_score: w.score, posts_created: w.posts })
           .eq("id", w.id)
       );
       await Promise.all(winnerPromises);
       winnersScaled = winnerUpdates.length;
 
-      // 4. Batch winner decisions
       if (winnerUpdates.length > 0) {
         await supabase.from("team_decisions").insert(
           winnerUpdates.map((w) => ({
@@ -116,11 +110,11 @@ export function useAutoOptimization(intervalMinutes = 15) {
             consensus_reached: true,
             executed: true,
             outcome: "Increased posting frequency by 2x",
+            user_id: user.id,
           }))
         );
       }
 
-      // 5. Batch loser decisions
       if (loserInserts.length > 0) {
         await supabase.from("team_decisions").insert(
           loserInserts.map((l) => ({
@@ -131,17 +125,18 @@ export function useAutoOptimization(intervalMinutes = 15) {
             consensus_reached: true,
             executed: true,
             outcome: "Team reassigned to new product",
+            user_id: user.id,
           }))
         );
         losersKilled = loserInserts.length;
       }
 
-      // 6. Log activity
       await supabase.from("bot_activities").insert({
         action: `Optimization cycle complete: ${winnersScaled} winners scaled, ${losersKilled} losers paused, ${teams.length} teams evaluated`,
         action_type: "optimize",
         target: "global",
         result: JSON.stringify({ winnersScaled, losersKilled, teamsEvaluated: teams.length }),
+        user_id: user.id,
       });
 
       const now = new Date();
@@ -157,7 +152,6 @@ export function useAutoOptimization(intervalMinutes = 15) {
         isRunning: false,
       }));
 
-      // Refresh data
       queryClient.invalidateQueries({ queryKey: ["bot_teams"] });
       queryClient.invalidateQueries({ queryKey: ["bots"] });
 
@@ -171,7 +165,7 @@ export function useAutoOptimization(intervalMinutes = 15) {
         description: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }, [intervalMinutes, queryClient]);
+  }, [intervalMinutes, queryClient, user]);
 
   const startOptimization = useCallback(() => {
     if (intervalRef.current) return;
@@ -182,10 +176,8 @@ export function useAutoOptimization(intervalMinutes = 15) {
       nextRun: new Date(Date.now() + intervalMinutes * 60 * 1000),
     }));
 
-    // Run immediately first
     runOptimization();
 
-    // Then set up interval
     intervalRef.current = setInterval(() => {
       runOptimization();
     }, intervalMinutes * 60 * 1000);
@@ -204,7 +196,6 @@ export function useAutoOptimization(intervalMinutes = 15) {
     toast.info("Auto-optimization paused");
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -224,9 +215,12 @@ export function useAutoOptimization(intervalMinutes = 15) {
 
 export function useAutoAssignToProducts() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const assignProductsToTeams = useCallback(
     async (products: ShopifyProduct[]) => {
+      if (!user) throw new Error("Not authenticated");
+
       try {
         const { data: teams, error: teamsError } = await supabase
           .from("bot_teams")
@@ -245,6 +239,7 @@ export function useAutoAssignToProducts() {
           reasoning: string;
           consensus_reached: boolean;
           executed: boolean;
+          user_id: string;
         }[] = [];
 
         for (let i = 0; i < products.length && i * 2 + 1 < teams.length; i++) {
@@ -284,6 +279,7 @@ export function useAutoAssignToProducts() {
               reasoning: `Product assigned for viral Pin campaign at $${product.node.priceRange.minVariantPrice.amount}`,
               consensus_reached: true,
               executed: true,
+              user_id: user.id,
             },
             {
               team_id: instagramTeam.id,
@@ -292,16 +288,15 @@ export function useAutoAssignToProducts() {
               reasoning: `Product assigned for Reels campaign at $${product.node.priceRange.minVariantPrice.amount}`,
               consensus_reached: true,
               executed: true,
+              user_id: user.id,
             }
           );
 
           assignedCount += 2;
         }
 
-        // Batch all updates in parallel
         await Promise.all(teamUpdates);
 
-        // Batch all decision inserts
         if (decisionInserts.length > 0) {
           await supabase.from("team_decisions").insert(decisionInserts);
         }
@@ -311,6 +306,7 @@ export function useAutoAssignToProducts() {
           action_type: "decision",
           target: "global",
           result: "success",
+          user_id: user.id,
         });
 
         queryClient.invalidateQueries({ queryKey: ["bot_teams"] });
@@ -321,7 +317,7 @@ export function useAutoAssignToProducts() {
         throw error;
       }
     },
-    [queryClient]
+    [queryClient, user]
   );
 
   return { assignProductsToTeams };
