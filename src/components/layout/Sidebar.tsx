@@ -16,7 +16,9 @@ import {
   Workflow,
   CreditCard,
   Store,
-  LogOut
+  LogOut,
+  LifeBuoy,
+  Users
 } from "lucide-react";
 
 const navItems = [
@@ -29,10 +31,12 @@ const navItems = [
   { icon: Brain, label: "CEO Brain", href: "/ceo-brain" },
   { icon: Bot, label: "Bot Swarm", href: "/bot-swarm" },
   { icon: Workflow, label: "n8n Workflows", href: "/n8n" },
+  { icon: LifeBuoy, label: "Support", href: "/support" },
   { icon: Store, label: "Connect Store", href: "/onboarding" },
   { icon: CreditCard, label: "Pricing", href: "/pricing" },
   { icon: Settings, label: "Settings", href: "/settings" },
-];
+  { icon: Users, label: "Admin CRM", href: "/admin", adminOnly: true },
+] as const;
 
 export function Sidebar() {
   const location = useLocation();
