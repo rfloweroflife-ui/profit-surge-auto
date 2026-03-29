@@ -117,8 +117,8 @@ function AppContent() {
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/n8n" element={<ProtectedRoute><N8nWorkflows /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/pricing" element={<AuthOnlyRoute><Pricing /></AuthOnlyRoute>} />
+        <Route path="/onboarding" element={<AuthOnlyRoute><Onboarding /></AuthOnlyRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </StoreConfigLoader>
