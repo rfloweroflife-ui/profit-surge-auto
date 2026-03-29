@@ -29,7 +29,7 @@ import { useCartSync } from "./hooks/useCartSync";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isSubscribed, subscription } = useAuth();
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -38,6 +38,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
+  // If trial expired and no active subscription, force to pricing
+  if (subscription && !isSubscribed) {
+    return <Navigate to="/pricing" replace />;
+  }
   return <>{children}</>;
 }
 
