@@ -11,10 +11,15 @@ interface Subscription {
 
 interface Profile {
   display_name: string | null;
+  email: string | null;
+  phone: string | null;
   company_name: string | null;
   brand_name: string | null;
   brand_logo_url: string | null;
   brand_primary_color: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
 }
 
 interface AuthContextType {
