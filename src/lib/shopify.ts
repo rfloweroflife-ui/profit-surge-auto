@@ -1,10 +1,26 @@
 import { toast } from "sonner";
 
-// Shopify Configuration - REAL PRODUCTION STORE
+// API version constant
 export const SHOPIFY_API_VERSION = '2025-07';
-export const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-i664s.myshopify.com';
-export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-export const SHOPIFY_STOREFRONT_TOKEN = '64e0636b2ba6042f8737ff3de609f963';
+
+// Dynamic store config — resolved per-user from store_connections table
+let _currentStoreDomain: string | null = null;
+let _currentStorefrontToken: string | null = null;
+
+export function setStoreConfig(domain: string, token: string) {
+  _currentStoreDomain = domain;
+  _currentStorefrontToken = token;
+}
+
+export function clearStoreConfig() {
+  _currentStoreDomain = null;
+  _currentStorefrontToken = null;
+}
+
+export function getStorefrontUrl() {
+  if (!_currentStoreDomain) return null;
+  return `https://${_currentStoreDomain}/api/${SHOPIFY_API_VERSION}/graphql.json`;
+}
 
 export interface ShopifyProduct {
   node: {
@@ -51,11 +67,17 @@ export interface ShopifyProduct {
 }
 
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
-  const response = await fetch(SHOPIFY_STOREFRONT_URL, {
+  const url = getStorefrontUrl();
+  if (!url || !_currentStorefrontToken) {
+    console.warn('Shopify store not configured — connect a store first');
+    return null;
+  }
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN
+      'X-Shopify-Storefront-Access-Token': _currentStorefrontToken
     },
     body: JSON.stringify({ query, variables }),
   });
@@ -81,8 +103,8 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
 }
 
 export const STOREFRONT_PRODUCTS_QUERY = `
-  query GetProducts($first: Int!) {
-    products(first: $first) {
+  query GetProducts($first: Int!, $query: String) {
+    products(first: $first, query: $query) {
       edges {
         node {
           id
