@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 
 export default function WarRoom() {
+  const { profile } = useAuth();
   const { data: products, isLoading } = useProducts(30);
   const { data: teams, refetch: refetchTeams } = useBotTeams();
   const { data: bots } = useBots();
@@ -101,7 +103,7 @@ export default function WarRoom() {
           <div>
             <h1 className="font-cyber text-3xl font-bold text-primary text-glow-sm flex items-center gap-3">
               <Flame className="h-8 w-8" />
-              PROFIT REAPER
+              {profile?.brand_name || 'COMMAND CENTER'}
             </h1>
             <p className="text-muted-foreground mt-1">
               Real-time command center

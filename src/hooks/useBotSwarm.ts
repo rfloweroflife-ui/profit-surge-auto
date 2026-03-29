@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
 
 export interface Bot {
   id: string;
@@ -222,10 +223,12 @@ export function useCompetitorAnalysis() {
 // Initialize swarm with 200 bots in 40 teams
 export function useInitializeSwarm() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
-      // Check if already initialized
+      if (!user) throw new Error("Not authenticated");
+      
       const { data: existingTeams } = await supabase.from("bot_teams").select("id").limit(1);
       if (existingTeams && existingTeams.length > 0) {
         return { message: "Swarm already initialized" };
@@ -234,19 +237,13 @@ export function useInitializeSwarm() {
       const roles: Bot["role"][] = ["ceo", "content", "analytics", "optimizer", "closer"];
       const platforms: BotTeam["assigned_platform"][] = ["pinterest", "instagram", "both"];
       
-      // Create 40 teams
-      const teams: Omit<BotTeam, "id" | "created_at" | "updated_at" | "bots">[] = [];
+      const teams: { name: string; assigned_platform: string; status: string; user_id: string }[] = [];
       for (let i = 1; i <= 40; i++) {
         teams.push({
           name: `Elite Team ${i}`,
-          assigned_product: null,
           assigned_platform: platforms[i % 3],
-          strategy: null,
-          performance_score: 0,
-          revenue_generated: 0,
-          posts_created: 0,
-          engagement_rate: 0,
           status: "standby",
+          user_id: user.id,
         });
       }
 
@@ -256,8 +253,7 @@ export function useInitializeSwarm() {
         .select();
       if (teamsError) throw teamsError;
 
-      // Create 5 bots per team (200 total)
-      const bots: Omit<Bot, "id" | "created_at" | "updated_at">[] = [];
+      const bots: { name: string; role: string; team_id: string; status: string; user_id: string }[] = [];
       createdTeams?.forEach((team, teamIndex) => {
         roles.forEach((role, roleIndex) => {
           bots.push({
@@ -265,9 +261,7 @@ export function useInitializeSwarm() {
             role,
             team_id: team.id,
             status: "idle",
-            current_task: null,
-            efficiency_score: 100,
-            tasks_completed: 0,
+            user_id: user.id,
           });
         });
       });
@@ -310,10 +304,10 @@ export function useSendCommand() {
 // Deploy all bots
 export function useDeployBots() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
-      // Get all team IDs, then batch update
       const { data: allTeams } = await supabase.from("bot_teams").select("id");
       if (allTeams && allTeams.length > 0) {
         const { error: teamsError } = await supabase
@@ -332,15 +326,15 @@ export function useDeployBots() {
         if (botsError) throw botsError;
       }
 
-      // Log activity
       await supabase.from("bot_activities").insert({
-        action: "All 200 bots deployed and active",
+        action: "All bots deployed and active",
         action_type: "decision",
         target: "global",
         result: "success",
+        user_id: user?.id,
       });
 
-      return { deployed: 200 };
+      return { deployed: allBots?.length || 0 };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bots"] });

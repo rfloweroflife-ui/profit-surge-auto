@@ -29,6 +29,23 @@ import { useCartSync } from "./hooks/useCartSync";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading, isSubscribed, subscription } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  // If trial expired and no active subscription, force to pricing
+  if (subscription && !isSubscribed) {
+    return <Navigate to="/pricing" replace />;
+  }
+  return <>{children}</>;
+}
+
+function AuthOnlyRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return (
@@ -100,8 +117,8 @@ function AppContent() {
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/n8n" element={<ProtectedRoute><N8nWorkflows /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/pricing" element={<AuthOnlyRoute><Pricing /></AuthOnlyRoute>} />
+        <Route path="/onboarding" element={<AuthOnlyRoute><Onboarding /></AuthOnlyRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </StoreConfigLoader>
