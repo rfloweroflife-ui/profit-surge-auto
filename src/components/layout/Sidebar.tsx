@@ -76,7 +76,7 @@ export function Sidebar() {
         
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
               <Link

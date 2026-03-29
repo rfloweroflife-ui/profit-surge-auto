@@ -23,6 +23,8 @@ import N8nWorkflows from "./pages/N8nWorkflows";
 import Auth from "./pages/Auth";
 import Pricing from "./pages/Pricing";
 import Onboarding from "./pages/Onboarding";
+import Support from "./pages/Support";
+import AdminCRM from "./pages/AdminCRM";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 
@@ -117,6 +119,8 @@ function AppContent() {
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/n8n" element={<ProtectedRoute><N8nWorkflows /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminCRM /></ProtectedRoute>} />
         <Route path="/pricing" element={<AuthOnlyRoute><Pricing /></AuthOnlyRoute>} />
         <Route path="/onboarding" element={<AuthOnlyRoute><Onboarding /></AuthOnlyRoute>} />
         <Route path="*" element={<NotFound />} />
