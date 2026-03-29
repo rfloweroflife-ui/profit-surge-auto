@@ -304,10 +304,10 @@ export function useSendCommand() {
 // Deploy all bots
 export function useDeployBots() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
-      // Get all team IDs, then batch update
       const { data: allTeams } = await supabase.from("bot_teams").select("id");
       if (allTeams && allTeams.length > 0) {
         const { error: teamsError } = await supabase
@@ -326,15 +326,15 @@ export function useDeployBots() {
         if (botsError) throw botsError;
       }
 
-      // Log activity
       await supabase.from("bot_activities").insert({
-        action: "All 200 bots deployed and active",
+        action: "All bots deployed and active",
         action_type: "decision",
         target: "global",
         result: "success",
+        user_id: user?.id,
       });
 
-      return { deployed: 200 };
+      return { deployed: allBots?.length || 0 };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bots"] });
