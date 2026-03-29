@@ -30,6 +30,7 @@ interface AuthContextType {
   isLoading: boolean;
   isTrialActive: boolean;
   isSubscribed: boolean;
+  isAdmin: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
