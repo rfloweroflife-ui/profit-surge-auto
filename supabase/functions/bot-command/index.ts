@@ -18,32 +18,52 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Extract user from auth header
+    const authHeader = req.headers.get("authorization");
+    let userId: string | null = null;
+    if (authHeader) {
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      userId = user?.id ?? null;
+    }
+
     // Parse command and determine actions
     const commandLower = command.toLowerCase();
     
-    // Log the command
+    // Log the command scoped to user
     await supabase.from("bot_commands").insert({
       command,
       command_type: commandType,
       target_ids: targetIds || [],
       status: "executing",
+      user_id: userId,
     });
 
     let actions: string[] = [];
-    let updates: Record<string, unknown> = {};
 
-    // Command parsing
+    // Scope all queries to user's data
+    const userFilter = userId ? { user_id: userId } : {};
+
     if (commandLower.includes("deploy all") || commandLower.includes("activate all")) {
       actions.push("Deploying all bots");
-      await supabase.from("bot_teams").update({ status: "active" }).neq("id", "00000000-0000-0000-0000-000000000000");
-      await supabase.from("bots").update({ status: "working" }).neq("id", "00000000-0000-0000-0000-000000000000");
+      let q = supabase.from("bot_teams").update({ status: "active" }).neq("id", "00000000-0000-0000-0000-000000000000");
+      if (userId) q = q.eq("user_id", userId);
+      await q;
+      
+      let bq = supabase.from("bots").update({ status: "working" }).neq("id", "00000000-0000-0000-0000-000000000000");
+      if (userId) bq = bq.eq("user_id", userId);
+      await bq;
     }
 
     if (commandLower.includes("analyze competitor") || commandLower.includes("steal")) {
       actions.push("Initiating competitor analysis");
-      // Get analytics bots
-      const { data: analyticsBots } = await supabase.from("bots").select("id").eq("role", "analytics").limit(10);
-      if (analyticsBots) {
+      let q = supabase.from("bots").select("id").eq("role", "analytics").limit(10);
+      if (userId) q = q.eq("user_id", userId);
+      const { data: analyticsBots } = await q;
+      if (analyticsBots && analyticsBots.length > 0) {
         await supabase.from("bots").update({ 
           status: "analyzing", 
           current_task: "Analyzing competitor content" 
@@ -53,8 +73,10 @@ serve(async (req) => {
 
     if (commandLower.includes("create content") || commandLower.includes("generate")) {
       actions.push("Content creation initiated");
-      const { data: contentBots } = await supabase.from("bots").select("id").eq("role", "content").limit(10);
-      if (contentBots) {
+      let q = supabase.from("bots").select("id").eq("role", "content").limit(10);
+      if (userId) q = q.eq("user_id", userId);
+      const { data: contentBots } = await q;
+      if (contentBots && contentBots.length > 0) {
         await supabase.from("bots").update({ 
           status: "working", 
           current_task: "Generating viral content" 
@@ -64,8 +86,10 @@ serve(async (req) => {
 
     if (commandLower.includes("optimize") || commandLower.includes("scale winner")) {
       actions.push("Optimization cycle started");
-      const { data: optimizerBots } = await supabase.from("bots").select("id").eq("role", "optimizer").limit(10);
-      if (optimizerBots) {
+      let q = supabase.from("bots").select("id").eq("role", "optimizer").limit(10);
+      if (userId) q = q.eq("user_id", userId);
+      const { data: optimizerBots } = await q;
+      if (optimizerBots && optimizerBots.length > 0) {
         await supabase.from("bots").update({ 
           status: "optimizing", 
           current_task: "Scaling winning campaigns" 
@@ -75,8 +99,10 @@ serve(async (req) => {
 
     if (commandLower.includes("post") || commandLower.includes("publish")) {
       actions.push("Content posting initiated");
-      const { data: closerBots } = await supabase.from("bots").select("id").eq("role", "closer").limit(10);
-      if (closerBots) {
+      let q = supabase.from("bots").select("id").eq("role", "closer").limit(10);
+      if (userId) q = q.eq("user_id", userId);
+      const { data: closerBots } = await q;
+      if (closerBots && closerBots.length > 0) {
         await supabase.from("bots").update({ 
           status: "posting", 
           current_task: "Publishing content to platforms" 
@@ -84,13 +110,14 @@ serve(async (req) => {
       }
     }
 
-    // Log activity
+    // Log activity scoped to user
     await supabase.from("bot_activities").insert({
       action: `Command executed: ${command}`,
       action_type: "decision",
       target: commandType,
       result: actions.join(", "),
-      metadata: { command, actions }
+      metadata: { command, actions },
+      user_id: userId,
     });
 
     // Use AI to generate strategic response
@@ -109,7 +136,7 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are an AI marketing commander controlling a swarm of 200 marketing bots organized into 40 elite teams. Each team has 5 specialized bots: CEO (strategy), Content (creation), Analytics (data), Optimizer (scaling), Closer (conversions). Respond to commands with specific tactical actions and assignments. Be concise and actionable.`
+              content: `You are an AI marketing commander controlling a swarm of marketing bots organized into elite teams. Each team has 5 specialized bots: CEO (strategy), Content (creation), Analytics (data), Optimizer (scaling), Closer (conversions). Respond to commands with specific tactical actions and assignments. Be concise and actionable.`
             },
             {
               role: "user",
