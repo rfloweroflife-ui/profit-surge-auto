@@ -24,24 +24,22 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   useCartSync();
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/product/:handle" element={<ProductDetail />} />
-        <Route path="/video-studio" element={<VideoStudio />} />
-        <Route path="/integrations" element={<Integrations />} />
-        <Route path="/ceo-brain" element={<CEOBrain />} />
-        <Route path="/bot-swarm" element={<BotSwarm />} />
-        <Route path="/sales" element={<SalesTracker />} />
-        <Route path="/social-poster" element={<SocialPoster />} />
-        <Route path="/x-hub" element={<XProfitHubPage />} />
-        <Route path="/auth/x/callback" element={<XAuthCallback />} />
-        <Route path="/n8n" element={<N8nWorkflows />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/products" element={<Products />} />
+      <Route path="/product/:handle" element={<ProductDetail />} />
+      <Route path="/video-studio" element={<VideoStudio />} />
+      <Route path="/integrations" element={<Integrations />} />
+      <Route path="/ceo-brain" element={<CEOBrain />} />
+      <Route path="/bot-swarm" element={<BotSwarm />} />
+      <Route path="/sales" element={<SalesTracker />} />
+      <Route path="/social-poster" element={<SocialPoster />} />
+      <Route path="/x-hub" element={<XProfitHubPage />} />
+      <Route path="/auth/x/callback" element={<XAuthCallback />} />
+      <Route path="/n8n" element={<N8nWorkflows />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
@@ -51,22 +49,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/product/:handle" element={<ProductDetail />} />
-          <Route path="/video-studio" element={<VideoStudio />} />
-          <Route path="/integrations" element={<Integrations />} />
-          <Route path="/ceo-brain" element={<CEOBrain />} />
-          <Route path="/bot-swarm" element={<BotSwarm />} />
-          <Route path="/sales" element={<SalesTracker />} />
-          <Route path="/social-poster" element={<SocialPoster />} />
-          <Route path="/x-hub" element={<XProfitHubPage />} />
-          <Route path="/auth/x/callback" element={<XAuthCallback />} />
-          <Route path="/n8n" element={<N8nWorkflows />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
