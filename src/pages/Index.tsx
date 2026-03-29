@@ -101,7 +101,7 @@ export default function WarRoom() {
           <div>
             <h1 className="font-cyber text-3xl font-bold text-primary text-glow-sm flex items-center gap-3">
               <Flame className="h-8 w-8" />
-              PROFIT REAPER
+              {profile?.brand_name || 'COMMAND CENTER'}
             </h1>
             <p className="text-muted-foreground mt-1">
               Real-time command center

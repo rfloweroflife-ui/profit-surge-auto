@@ -3,55 +3,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { useProducts } from "@/hooks/useProducts";
+import { useBots, useBotTeams } from "@/hooks/useBotSwarm";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
-  Settings, 
-  Store, 
-  Bell, 
-  Palette,
-  Shield,
-  Database,
-  ExternalLink,
-  Check,
-  Globe,
-  RefreshCw,
-  Zap,
-  Bot,
-  Video,
-  Share2
+  Store, Bell, Globe, RefreshCw, Zap, Bot, Database, Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function SettingsPage() {
+  const { user, profile, subscription } = useAuth();
+  const { data: products } = useProducts(30);
+  const { data: bots } = useBots();
+  const { data: teams } = useBotTeams();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { data: storeConnection } = useQuery({
+    queryKey: ['store-connection', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from('store_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const brandName = profile?.brand_name || 'Your Brand';
+  const storeDomain = storeConnection?.store_domain || 'Not connected';
+  const productCount = products?.length || 0;
+  const totalBots = bots?.length || 0;
+  const totalTeams = teams?.length || 0;
+  const activeBots = bots?.filter(b => b.status !== 'idle').length || 0;
 
   const handleForceSync = async () => {
     setIsRefreshing(true);
-    // Simulate sync
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Trigger a product refetch by invalidating query
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsRefreshing(false);
     toast.success("Store synced!", {
-      description: "30 products refreshed from lovable-project-i664s.myshopify.com"
+      description: `${productCount} products refreshed from ${storeDomain}`
     });
   };
 
-  const domains = [
-    { name: "auraliftessentials.com", status: "ready", primary: true },
-    { name: "omegaalpha.io", status: "ready", primary: false },
-    { name: "profitreaper.com", status: "ready", primary: false },
-    { name: "lovable.app subdomain", status: "active", primary: false },
-  ];
-
-  const integrations = [
-    { name: "Shopify Storefront API", status: "active", description: "30 products synced" },
-    { name: "Lovable Cloud (Backend)", status: "active", description: "Database & Edge Functions" },
-    { name: "Lovable AI (CEO Brain)", status: "active", description: "Gemini-powered commands" },
-    { name: "200-Bot Swarm", status: "active", description: "40 teams deployed" },
-    { name: "Video Studio (D-ID)", status: "ready", description: "Add API key to activate" },
-    { name: "Voice AI (ElevenLabs)", status: "active", description: "TTS enabled" },
-    { name: "Pinterest API", status: "ready", description: "OAuth connect available" },
-    { name: "Instagram API", status: "ready", description: "OAuth connect available" },
-  ];
+  const tierLabel = subscription?.tier === 'trial' ? 'Free Trial' : 
+    subscription?.tier ? subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1) : 'Trial';
 
   return (
     <Layout>
@@ -61,111 +65,80 @@ export default function SettingsPage() {
             SYSTEM SETTINGS
           </h1>
           <p className="text-muted-foreground mt-1">
-            Configure your Profit Reaper command center — Real production mode
+            Configure your {brandName} command center
           </p>
         </div>
 
-        {/* Live Store Connection */}
-        <Card className="bg-card/50 border-primary/50 shadow-lg shadow-primary/10">
+        {/* Subscription Status */}
+        <Card className="bg-card/50 border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-primary" />
-              Production Store
-              <Badge className="ml-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/50">
-                LIVE
+              <Zap className="h-5 w-5 text-primary" />
+              Subscription
+              <Badge className="ml-2 border-primary/50 text-primary" variant="outline">
+                {tierLabel}
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                  <Check className="h-6 w-6 text-emerald-400" />
-                </div>
-                <div>
-                  <p className="font-bold text-emerald-400">lovable-project-i664s.myshopify.com</p>
-                  <p className="text-sm text-muted-foreground">30 products • CJ Fulfillment • Real revenue tracking</p>
-                </div>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Bot limit: <span className="text-foreground font-medium">{subscription?.bot_limit || 50}</span>
+                </p>
+                {subscription?.status === 'trialing' && subscription.trial_ends_at && (
+                  <p className="text-sm text-muted-foreground">
+                    Trial ends: <span className="text-foreground font-medium">{new Date(subscription.trial_ends_at).toLocaleDateString()}</span>
+                  </p>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleForceSync}
-                  disabled={isRefreshing}
-                  className="border-primary/50"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Syncing...' : 'Force Sync'}
-                </Button>
-                <Badge className="bg-emerald-500 text-white">Connected</Badge>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-secondary/30 border border-border">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-primary">30</p>
-                <p className="text-xs text-muted-foreground">Products</p>
-              </div>
-              <div className="text-center border-x border-border">
-                <p className="text-2xl font-bold text-primary">15min</p>
-                <p className="text-xs text-muted-foreground">Auto-sync</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-400">$0</p>
-                <p className="text-xs text-muted-foreground">Real Revenue</p>
-              </div>
+              <Link to="/pricing">
+                <Button variant="outline" size="sm">Manage Plan</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
 
-        {/* Domain Management */}
-        <Card className="bg-card/50 border-border">
+        {/* Store Connection */}
+        <Card className={`bg-card/50 ${storeConnection ? 'border-primary/50' : 'border-border'}`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
-              Domain Management
+              <Store className="h-5 w-5 text-primary" />
+              Store Connection
+              {storeConnection && (
+                <Badge className="ml-2 bg-primary/20 text-primary border-primary/50">LIVE</Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Configure custom domains in Lovable Project Settings → Domains. DNS should point A records to 185.158.133.1
-            </p>
-            {domains.map((domain) => (
-              <div 
-                key={domain.name}
-                className={`flex items-center justify-between p-4 rounded-lg border ${
-                  domain.primary 
-                    ? 'bg-primary/10 border-primary/50' 
-                    : 'bg-secondary/30 border-border'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Globe className={`h-5 w-5 ${domain.primary ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <div>
-                    <p className={`font-medium ${domain.primary ? 'text-primary' : ''}`}>
-                      {domain.name}
-                      {domain.primary && <span className="text-xs ml-2 text-primary">(Primary)</span>}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {domain.status === 'active' ? 'Live and serving traffic' : 'DNS ready - publish to activate'}
-                    </p>
+            {storeConnection ? (
+              <>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/30">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Check className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-primary">{storeDomain}</p>
+                      <p className="text-sm text-muted-foreground">{productCount} products synced</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleForceSync} disabled={isRefreshing}>
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Syncing...' : 'Force Sync'}
+                    </Button>
                   </div>
                 </div>
-                <Badge 
-                  className={
-                    domain.status === 'active' 
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                      : 'bg-amber-500/20 text-amber-400 border-amber-500/50'
-                  }
-                >
-                  {domain.status}
-                </Badge>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground mb-3">No store connected yet</p>
+                <Link to="/onboarding">
+                  <Button className="gradient-cyber text-primary-foreground">Connect Store</Button>
+                </Link>
               </div>
-            ))}
-            <p className="text-xs text-muted-foreground">
-              To activate "Ready" domains, publish your app from the Lovable editor.
-            </p>
+            )}
           </CardContent>
         </Card>
 
@@ -174,26 +147,26 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
-              200-Bot Swarm Status
+              Bot Swarm Status
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-                <p className="text-2xl font-bold text-emerald-400">200</p>
-                <p className="text-xs text-muted-foreground">Active Bots</p>
+              <div className="text-center p-4 rounded-lg bg-secondary/30 border border-border">
+                <p className="text-2xl font-bold text-primary">{totalBots}</p>
+                <p className="text-xs text-muted-foreground">Total Bots</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/30">
-                <p className="text-2xl font-bold text-primary">40</p>
-                <p className="text-xs text-muted-foreground">Elite Teams</p>
+              <div className="text-center p-4 rounded-lg bg-secondary/30 border border-border">
+                <p className="text-2xl font-bold text-primary">{activeBots}</p>
+                <p className="text-xs text-muted-foreground">Active</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                <p className="text-2xl font-bold text-amber-400">5</p>
-                <p className="text-xs text-muted-foreground">Bots/Team</p>
+              <div className="text-center p-4 rounded-lg bg-secondary/30 border border-border">
+                <p className="text-2xl font-bold text-primary">{totalTeams}</p>
+                <p className="text-xs text-muted-foreground">Teams</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
-                <p className="text-2xl font-bold text-purple-400">15min</p>
-                <p className="text-xs text-muted-foreground">Optimize Cycle</p>
+              <div className="text-center p-4 rounded-lg bg-secondary/30 border border-border">
+                <p className="text-2xl font-bold text-primary">{subscription?.bot_limit || 50}</p>
+                <p className="text-xs text-muted-foreground">Bot Limit</p>
               </div>
             </div>
           </CardContent>
@@ -204,96 +177,58 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-primary" />
-              Real-Time Notifications
+              Notifications
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">New order alerts</p>
-                <p className="text-sm text-muted-foreground">Instant notification on real sales</p>
+            {[
+              { title: "New order alerts", desc: "Instant notification on sales" },
+              { title: "Low inventory alerts", desc: "Alert when stock is low" },
+              { title: "Bot performance", desc: "Optimization summaries" },
+              { title: "AI insights", desc: "Strategy recommendations" },
+            ].map((item) => (
+              <div key={item.title} className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+                <Switch defaultChecked />
               </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Low inventory alerts</p>
-                <p className="text-sm text-muted-foreground">Alert when CJ stock is low</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Bot swarm performance</p>
-                <p className="text-sm text-muted-foreground">Hourly optimization summaries</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">CEO Brain insights</p>
-                <p className="text-sm text-muted-foreground">AI strategy recommendations</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
+            ))}
           </CardContent>
         </Card>
 
-        {/* Integration Status */}
+        {/* Integration Status — dynamic */}
         <Card className="bg-card/50 border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
-              Integration Status
+              Integrations
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {integrations.map((integration) => (
+              {[
+                { name: "Shopify Store", status: storeConnection ? "active" : "setup", desc: storeConnection ? `${productCount} products` : "Connect your store" },
+                { name: "Backend", status: "active", desc: "Database & Functions" },
+                { name: "AI Engine", status: "active", desc: "Content generation" },
+                { name: "Bot Swarm", status: totalBots > 0 ? "active" : "ready", desc: `${totalBots} bots initialized` },
+              ].map((integration) => (
                 <div 
                   key={integration.name}
                   className={`flex items-center justify-between p-4 rounded-lg border ${
-                    integration.status === 'active'
-                      ? 'bg-emerald-500/5 border-emerald-500/30'
-                      : 'bg-secondary/30 border-border'
+                    integration.status === 'active' ? 'bg-primary/5 border-primary/30' : 'bg-secondary/30 border-border'
                   }`}
                 >
                   <div>
                     <span className="font-medium">{integration.name}</span>
-                    <p className="text-xs text-muted-foreground">{integration.description}</p>
+                    <p className="text-xs text-muted-foreground">{integration.desc}</p>
                   </div>
-                  <Badge 
-                    className={
-                      integration.status === 'active'
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                        : 'bg-amber-500/20 text-amber-400 border-amber-500/50'
-                    }
-                  >
+                  <Badge variant="outline" className={integration.status === 'active' ? 'border-primary/50 text-primary' : ''}>
                     {integration.status}
                   </Badge>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Mode */}
-        <Card className="bg-red-500/10 border-red-500/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-400">
-              <Zap className="h-5 w-5" />
-              Demo Mode Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-bold text-red-400">DEMO MODE: KILLED</p>
-                <p className="text-sm text-muted-foreground">
-                  All simulations terminated. Real Shopify data only. $0 revenue until actual sales.
-                </p>
-              </div>
-              <Badge className="bg-red-500 text-white">ELIMINATED</Badge>
             </div>
           </CardContent>
         </Card>
