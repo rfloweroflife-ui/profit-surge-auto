@@ -237,7 +237,7 @@ export function useInitializeSwarm() {
       const roles: Bot["role"][] = ["ceo", "content", "analytics", "optimizer", "closer"];
       const platforms: BotTeam["assigned_platform"][] = ["pinterest", "instagram", "both"];
       
-      const teams: Record<string, unknown>[] = [];
+      const teams: { name: string; assigned_platform: string; status: string; user_id: string }[] = [];
       for (let i = 1; i <= 40; i++) {
         teams.push({
           name: `Elite Team ${i}`,
@@ -253,7 +253,7 @@ export function useInitializeSwarm() {
         .select();
       if (teamsError) throw teamsError;
 
-      const bots: Record<string, unknown>[] = [];
+      const bots: { name: string; role: string; team_id: string; status: string; user_id: string }[] = [];
       createdTeams?.forEach((team, teamIndex) => {
         roles.forEach((role, roleIndex) => {
           bots.push({
