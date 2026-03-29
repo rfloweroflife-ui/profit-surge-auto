@@ -223,10 +223,12 @@ export function useCompetitorAnalysis() {
 // Initialize swarm with 200 bots in 40 teams
 export function useInitializeSwarm() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
-      // Check if already initialized
+      if (!user) throw new Error("Not authenticated");
+      
       const { data: existingTeams } = await supabase.from("bot_teams").select("id").limit(1);
       if (existingTeams && existingTeams.length > 0) {
         return { message: "Swarm already initialized" };
@@ -235,19 +237,13 @@ export function useInitializeSwarm() {
       const roles: Bot["role"][] = ["ceo", "content", "analytics", "optimizer", "closer"];
       const platforms: BotTeam["assigned_platform"][] = ["pinterest", "instagram", "both"];
       
-      // Create 40 teams
-      const teams: Omit<BotTeam, "id" | "created_at" | "updated_at" | "bots">[] = [];
+      const teams: Record<string, unknown>[] = [];
       for (let i = 1; i <= 40; i++) {
         teams.push({
           name: `Elite Team ${i}`,
-          assigned_product: null,
           assigned_platform: platforms[i % 3],
-          strategy: null,
-          performance_score: 0,
-          revenue_generated: 0,
-          posts_created: 0,
-          engagement_rate: 0,
           status: "standby",
+          user_id: user.id,
         });
       }
 
@@ -257,8 +253,7 @@ export function useInitializeSwarm() {
         .select();
       if (teamsError) throw teamsError;
 
-      // Create 5 bots per team (200 total)
-      const bots: Omit<Bot, "id" | "created_at" | "updated_at">[] = [];
+      const bots: Record<string, unknown>[] = [];
       createdTeams?.forEach((team, teamIndex) => {
         roles.forEach((role, roleIndex) => {
           bots.push({
@@ -266,9 +261,7 @@ export function useInitializeSwarm() {
             role,
             team_id: team.id,
             status: "idle",
-            current_task: null,
-            efficiency_score: 100,
-            tasks_completed: 0,
+            user_id: user.id,
           });
         });
       });
