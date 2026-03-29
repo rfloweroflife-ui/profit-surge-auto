@@ -53,7 +53,7 @@ export default function WarRoom() {
   };
 
   const systemStatus = [
-    { name: "Shopify Store", status: "connected", detail: "lovable-project-i664s", color: "text-primary" },
+    { name: "Shopify Store", status: "connected", detail: "Your store", color: "text-primary" },
     { name: "Products Synced", status: "active", detail: `${products?.length || 0} products`, color: "text-primary" },
     { name: "Bot Swarm", status: totalBots > 0 ? "active" : "ready", detail: `${activeBots} / ${totalBots || 200} bots`, color: activeBots > 0 ? "text-primary" : "text-muted-foreground" },
     { name: "Auto-Optimization", status: isActive ? "running" : "standby", detail: isActive ? `${stats.runsCompleted} cycles` : "15 min loop", color: isActive ? "text-primary" : "text-muted-foreground" },
@@ -104,7 +104,7 @@ export default function WarRoom() {
               PROFIT REAPER
             </h1>
             <p className="text-muted-foreground mt-1">
-              Real-time command center • Store: lovable-project-i664s.myshopify.com
+              Real-time command center
             </p>
           </div>
           <div className="flex items-center gap-2">

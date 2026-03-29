@@ -1,5 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   LayoutDashboard, 
   Video, 
@@ -10,7 +13,10 @@ import {
   Package,
   Settings,
   Zap,
-  Workflow
+  Workflow,
+  CreditCard,
+  Store,
+  LogOut
 } from "lucide-react";
 
 const navItems = [
@@ -23,12 +29,20 @@ const navItems = [
   { icon: Brain, label: "CEO Brain", href: "/ceo-brain" },
   { icon: Bot, label: "Bot Swarm", href: "/bot-swarm" },
   { icon: Workflow, label: "n8n Workflows", href: "/n8n" },
+  { icon: Store, label: "Connect Store", href: "/onboarding" },
+  { icon: CreditCard, label: "Pricing", href: "/pricing" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function Sidebar() {
   const location = useLocation();
+  const { profile, subscription, signOut } = useAuth();
   
+  const brandName = profile?.brand_name || 'PROFIT REAPER';
+  
+  const tierLabel = subscription?.tier === 'trial' ? 'Free Trial' : 
+    subscription?.tier ? subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1) : 'Trial';
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-card/50 backdrop-blur-xl">
       <div className="flex h-full flex-col">
@@ -39,14 +53,14 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="font-cyber text-lg font-bold text-primary text-glow-sm">
-              PROFIT REAPER
+              {brandName}
             </h1>
             <p className="text-xs text-muted-foreground">Marketing Command</p>
           </div>
         </div>
         
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -70,17 +84,30 @@ export function Sidebar() {
           })}
         </nav>
         
-        {/* Status */}
-        <div className="border-t border-border p-4">
+        {/* User / Subscription Status */}
+        <div className="border-t border-border p-4 space-y-3">
           <div className="rounded-lg bg-secondary/50 p-3">
-            <div className="flex items-center gap-2 text-xs">
-              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-muted-foreground">Store Connected</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Plan</span>
+              <Badge variant="outline" className="text-xs border-primary/50 text-primary">
+                {tierLabel}
+              </Badge>
             </div>
-            <p className="mt-1 truncate text-xs font-medium text-foreground">
-              lovable-project-i664s
-            </p>
+            {subscription?.status === 'trialing' && subscription.trial_ends_at && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Ends {new Date(subscription.trial_ends_at).toLocaleDateString()}
+              </p>
+            )}
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-muted-foreground hover:text-destructive"
+            onClick={signOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
     </aside>
