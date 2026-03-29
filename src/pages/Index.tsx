@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 
 export default function WarRoom() {
+  const { profile } = useAuth();
   const { data: products, isLoading } = useProducts(30);
   const { data: teams, refetch: refetchTeams } = useBotTeams();
   const { data: bots } = useBots();

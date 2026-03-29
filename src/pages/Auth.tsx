@@ -125,7 +125,7 @@ export default function Auth() {
                     Start 3-Day Free Trial
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    No credit card required to start. Full access for 3 days.
+                    3-day free trial with full access. Card required at checkout.
                   </p>
                 </form>
               </TabsContent>
