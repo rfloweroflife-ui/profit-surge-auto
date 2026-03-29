@@ -25,6 +25,7 @@ export type Database = {
           result: string | null
           target: string | null
           team_id: string | null
+          user_id: string | null
         }
         Insert: {
           action: string
@@ -36,6 +37,7 @@ export type Database = {
           result?: string | null
           target?: string | null
           team_id?: string | null
+          user_id?: string | null
         }
         Update: {
           action?: string
@@ -47,6 +49,7 @@ export type Database = {
           result?: string | null
           target?: string | null
           team_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -75,6 +78,7 @@ export type Database = {
           result: Json | null
           status: string
           target_ids: string[] | null
+          user_id: string | null
         }
         Insert: {
           command: string
@@ -85,6 +89,7 @@ export type Database = {
           result?: Json | null
           status?: string
           target_ids?: string[] | null
+          user_id?: string | null
         }
         Update: {
           command?: string
@@ -95,6 +100,7 @@ export type Database = {
           result?: Json | null
           status?: string
           target_ids?: string[] | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -112,6 +118,7 @@ export type Database = {
           status: string
           strategy: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           assigned_platform?: string | null
@@ -126,6 +133,7 @@ export type Database = {
           status?: string
           strategy?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           assigned_platform?: string | null
@@ -140,6 +148,7 @@ export type Database = {
           status?: string
           strategy?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -155,6 +164,7 @@ export type Database = {
           tasks_completed: number | null
           team_id: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -167,6 +177,7 @@ export type Database = {
           tasks_completed?: number | null
           team_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -179,6 +190,7 @@ export type Database = {
           tasks_completed?: number | null
           team_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -390,6 +402,7 @@ export type Database = {
           our_version_created: boolean | null
           platform: string
           stolen_elements: Json | null
+          user_id: string | null
           views_count: number | null
         }
         Insert: {
@@ -405,6 +418,7 @@ export type Database = {
           our_version_created?: boolean | null
           platform: string
           stolen_elements?: Json | null
+          user_id?: string | null
           views_count?: number | null
         }
         Update: {
@@ -420,6 +434,7 @@ export type Database = {
           our_version_created?: boolean | null
           platform?: string
           stolen_elements?: Json | null
+          user_id?: string | null
           views_count?: number | null
         }
         Relationships: [
@@ -893,6 +908,7 @@ export type Database = {
           outcome: string | null
           reasoning: string | null
           team_id: string | null
+          user_id: string | null
           votes: Json | null
         }
         Insert: {
@@ -905,6 +921,7 @@ export type Database = {
           outcome?: string | null
           reasoning?: string | null
           team_id?: string | null
+          user_id?: string | null
           votes?: Json | null
         }
         Update: {
@@ -917,6 +934,7 @@ export type Database = {
           outcome?: string | null
           reasoning?: string | null
           team_id?: string | null
+          user_id?: string | null
           votes?: Json | null
         }
         Relationships: [
