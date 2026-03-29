@@ -237,7 +237,7 @@ export function useAutoAssignToProducts() {
         if (!teams || teams.length === 0) throw new Error("No teams available");
 
         let assignedCount = 0;
-        const teamUpdates: Promise<unknown>[] = [];
+        const teamUpdates: PromiseLike<unknown>[] = [];
         const decisionInserts: {
           team_id: string;
           decision_type: string;
