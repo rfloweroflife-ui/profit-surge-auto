@@ -16,7 +16,18 @@ serve(async (req) => {
     const PINTEREST_APP_ID = Deno.env.get("PINTEREST_APP_ID");
     const PINTEREST_APP_SECRET = Deno.env.get("PINTEREST_APP_SECRET");
     
+    // For status checks, return disconnected gracefully instead of erroring
     if (!PINTEREST_APP_ID || !PINTEREST_APP_SECRET) {
+      if (action === "check_status" || action === "get_conversion_stats") {
+        return new Response(
+          JSON.stringify({ 
+            connected: false,
+            needsSetup: true,
+            message: "Pinterest not configured yet"
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
         JSON.stringify({ 
           error: "Pinterest API credentials not configured",
