@@ -785,34 +785,61 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           brand_logo_url: string | null
           brand_name: string | null
           brand_primary_color: string | null
+          city: string | null
           company_name: string | null
+          country: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
+          last_seen_at: string | null
+          notes: string | null
+          phone: string | null
+          state: string | null
           updated_at: string
+          zip: string | null
         }
         Insert: {
+          address?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_primary_color?: string | null
+          city?: string | null
           company_name?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
           updated_at?: string
+          zip?: string | null
         }
         Update: {
+          address?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_primary_color?: string | null
+          city?: string | null
           company_name?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
           updated_at?: string
+          zip?: string | null
         }
         Relationships: []
       }
@@ -892,6 +919,45 @@ export type Database = {
           stripe_subscription_id?: string | null
           tier?: string
           trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string
           updated_at?: string
           user_id?: string
         }

@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -16,7 +18,9 @@ import {
   Workflow,
   CreditCard,
   Store,
-  LogOut
+  LogOut,
+  LifeBuoy,
+  Users
 } from "lucide-react";
 
 const navItems = [
@@ -29,16 +33,27 @@ const navItems = [
   { icon: Brain, label: "CEO Brain", href: "/ceo-brain" },
   { icon: Bot, label: "Bot Swarm", href: "/bot-swarm" },
   { icon: Workflow, label: "n8n Workflows", href: "/n8n" },
+  { icon: LifeBuoy, label: "Support", href: "/support" },
   { icon: Store, label: "Connect Store", href: "/onboarding" },
   { icon: CreditCard, label: "Pricing", href: "/pricing" },
   { icon: Settings, label: "Settings", href: "/settings" },
-];
+  { icon: Users, label: "Admin CRM", href: "/admin", adminOnly: true },
+] as const;
 
 export function Sidebar() {
   const location = useLocation();
-  const { profile, subscription, signOut } = useAuth();
+  const { user, profile, subscription, signOut } = useAuth();
   
   const brandName = profile?.brand_name || 'PROFIT REAPER';
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').single()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
+  
+  const visibleItems = navItems.filter(item => !('adminOnly' in item && item.adminOnly) || isAdmin);
   
   const tierLabel = subscription?.tier === 'trial' ? 'Free Trial' : 
     subscription?.tier ? subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1) : 'Trial';
@@ -61,7 +76,7 @@ export function Sidebar() {
         
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
               <Link
