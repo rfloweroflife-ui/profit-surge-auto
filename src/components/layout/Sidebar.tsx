@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -40,9 +42,18 @@ const navItems = [
 
 export function Sidebar() {
   const location = useLocation();
-  const { profile, subscription, signOut } = useAuth();
+  const { user, profile, subscription, signOut } = useAuth();
   
   const brandName = profile?.brand_name || 'PROFIT REAPER';
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').single()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
+  
+  const visibleItems = navItems.filter(item => !('adminOnly' in item && item.adminOnly) || isAdmin);
   
   const tierLabel = subscription?.tier === 'trial' ? 'Free Trial' : 
     subscription?.tier ? subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1) : 'Trial';
