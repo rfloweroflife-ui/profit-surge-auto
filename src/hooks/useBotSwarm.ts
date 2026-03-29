@@ -313,19 +313,24 @@ export function useDeployBots() {
 
   return useMutation({
     mutationFn: async () => {
-      // Update all teams to active
-      const { error: teamsError } = await supabase
-        .from("bot_teams")
-        .update({ status: "active" })
-        .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all
-      if (teamsError) throw teamsError;
+      // Get all team IDs, then batch update
+      const { data: allTeams } = await supabase.from("bot_teams").select("id");
+      if (allTeams && allTeams.length > 0) {
+        const { error: teamsError } = await supabase
+          .from("bot_teams")
+          .update({ status: "active" })
+          .in("id", allTeams.map((t) => t.id));
+        if (teamsError) throw teamsError;
+      }
 
-      // Update all bots to working
-      const { error: botsError } = await supabase
-        .from("bots")
-        .update({ status: "working" })
-        .neq("id", "00000000-0000-0000-0000-000000000000");
-      if (botsError) throw botsError;
+      const { data: allBots } = await supabase.from("bots").select("id");
+      if (allBots && allBots.length > 0) {
+        const { error: botsError } = await supabase
+          .from("bots")
+          .update({ status: "working" })
+          .in("id", allBots.map((b) => b.id));
+        if (botsError) throw botsError;
+      }
 
       // Log activity
       await supabase.from("bot_activities").insert({
