@@ -768,6 +768,120 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          brand_logo_url: string | null
+          brand_name: string | null
+          brand_primary_color: string | null
+          company_name: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          brand_primary_color?: string | null
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          brand_primary_color?: string | null
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      store_connections: {
+        Row: {
+          admin_token_encrypted: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          store_domain: string
+          store_name: string | null
+          storefront_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_token_encrypted?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          store_domain: string
+          store_name?: string | null
+          storefront_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_token_encrypted?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          store_domain?: string
+          store_name?: string | null
+          storefront_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          bot_limit: number
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bot_limit?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bot_limit?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_decisions: {
         Row: {
           consensus_reached: boolean | null
@@ -814,6 +928,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       whatsapp_analytics: {
         Row: {
@@ -1291,10 +1423,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1421,6 +1559,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+    },
   },
 } as const
